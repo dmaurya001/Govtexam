@@ -91,22 +91,43 @@ Return a JSON array with exactly this structure:
 // GeminiProvider
 // ─────────────────────────────────────────────
 async function geminiGenerateQuestions(params) {
-  const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
-  const client = getGeminiClient();
-  const model = client.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      temperature: 0.7,
-      topP: 0.9,
-      maxOutputTokens: 8192,
-      responseMimeType: "application/json"
-    }
-  });
+  const candidateModels = [
+    "gemini-2.5-flash",
+    process.env.GEMINI_MODEL,
+    "gemini-2.0-flash",
+    "gemini-1.5-flash"
+  ].filter(Boolean);
 
+  const modelsToTry = [...new Set(candidateModels)];
+  const client = getGeminiClient();
   const prompt = buildGenerationPrompt(params);
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
-  return parseAIJsonResponse(text, "Gemini");
+
+  let lastError = null;
+  for (const modelName of modelsToTry) {
+    try {
+      const model = client.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.9,
+          maxOutputTokens: 8192,
+          responseMimeType: "application/json"
+        }
+      });
+
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      return parseAIJsonResponse(text, `Gemini (${modelName})`);
+    } catch (err) {
+      lastError = err;
+      if (err.message && (err.message.includes("404") || err.message.includes("not found"))) {
+        console.warn(`[Gemini] Model ${modelName} not found, trying next model...`);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastError || new Error("All Gemini candidate models failed");
 }
 
 // ─────────────────────────────────────────────
