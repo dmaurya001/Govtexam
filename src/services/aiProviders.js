@@ -32,8 +32,6 @@ function getOpenAIClient() {
   }
   return _openaiClient;
 }
-  return _openaiClient;
-}
 
 // ─────────────────────────────────────────────
 // Prompt builder
