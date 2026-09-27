@@ -273,9 +273,14 @@
       localStorage.removeItem("geh_custom_exam_configs");
 
       // -------------------------------------------------------------
-      // Test 10: Teacher Credentials & Contact Information
+      // Test 10: Teacher Credentials & Passcode Management System
       // -------------------------------------------------------------
-      assert(state.ADMIN_PIN === "896062", "Admin PIN configured as 896062");
+      assert(typeof getAdminPasscode === "function", "getAdminPasscode function exists");
+      assert(getAdminPasscode() === "896062", "Admin PIN defaults to 896062");
+      setAdminPasscode("741852");
+      assert(getAdminPasscode() === "741852", "Admin PIN successfully updated to new passcode");
+      resetAdminPasscode();
+      assert(getAdminPasscode() === "896062", "Admin PIN successfully reset to default 896062");
       assert(state.SPREADSHEET_URL.includes("1IjVmBmR-q2c7ZP9UORJAn3tqDIjzl2S_hzB0oW6LXhk"), "Live Google Sheet configured");
 
       // -------------------------------------------------------------

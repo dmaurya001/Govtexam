@@ -1593,6 +1593,9 @@
         <button class="btn-admin" id="btn-admin-cloud-config" title="Google Sheets / Cloud Webhook">
           <span>☁️ Cloud Sync Settings</span>
         </button>
+        <button class="btn-admin" id="btn-admin-change-pin" title="Change Admin Security Passcode (पासवर्ड बदलें)">
+          <span>🔑 Change Passcode</span>
+        </button>
         <button class="btn-admin primary" id="btn-exit-admin">
           <span>🏠 Student Portal</span>
         </button>
@@ -1917,6 +1920,27 @@
           </div>
         </div>
 
+        <!-- Admin Passcode Management Card -->
+        <div class="security-overview-card" style="margin-bottom: 20px; border-left: 4px solid #f59e0b; background: #fffdf5;">
+          <div class="security-rule-flex" style="flex-wrap: wrap; gap: 16px; align-items: center;">
+            <div class="security-rule-info" style="flex: 1; min-width: 260px;">
+              <span class="security-badge-pill" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a;">🔐 Admin Security Authentication</span>
+              <h3 style="margin-top: 6px;">Admin Dashboard Security Passcode (सुरक्षा पासवर्ड)</h3>
+              <p style="color: #64748b; font-size: 0.88rem; margin-top: 4px;">
+                एडमिन पोर्टल में लॉग इन करने का पासवर्ड यहाँ से बदलें। वर्तमान में सुरक्षित पासवर्ड सक्रिय है (डिफ़ॉल्ट: <code>896062</code>)।
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn-admin primary" id="btn-open-change-pin-modal" style="background: #2563eb; color: #ffffff; padding: 9px 18px; font-weight: 600;">
+                <span>🔑 Change Passcode (पासवर्ड बदलें)</span>
+              </button>
+              <button type="button" class="btn-admin" id="btn-reset-default-pin" title="Reset Passcode to default 896062" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 9px 14px;">
+                <span>↺ Reset Default (896062)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Today's Attempt Summary Statistics -->
         <div class="admin-stat-cards" style="margin-bottom: 20px;">
           <div class="stat-card">
@@ -2143,6 +2167,67 @@
       <div class="modal-actions">
         <button class="btn-cbt btn-cbt-gray" id="btn-cancel-auth">Cancel</button>
         <button class="btn-cbt btn-cbt-primary" id="btn-submit-auth">Unlock Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL: CHANGE ADMIN PASSCODE
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-change-admin-pin">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.35rem;">🔑</span>
+          <h3 style="margin: 0; font-size: 1.15rem; color: #0f172a;">Change Admin Passcode</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-change-pin-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: #64748b; font-size: 0.88rem; margin-bottom: 16px; line-height: 1.45;">
+          एडमिन डैशबोर्ड का नया सुरक्षा पासवर्ड सेट करें। पासवर्ड बदलने के बाद अगली बार उसी पासवर्ड से लॉगिन करें।
+        </p>
+
+        <!-- Current PIN -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="input-current-admin-pin" style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 5px;">
+            Current Passcode (वर्तमान पासवर्ड) <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="input-current-admin-pin" class="form-input" placeholder="Enter current passcode" style="width: 100%; padding-right: 40px; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding-left: 12px; font-size: 0.95rem;" autocomplete="current-password">
+            <button type="button" class="btn-toggle-pin-visibility" data-target="input-current-admin-pin" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 1rem; padding: 4px;" title="Show/Hide">👁️</button>
+          </div>
+        </div>
+
+        <!-- New PIN -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="input-new-admin-pin" style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 5px;">
+            New Passcode (नया पासवर्ड) <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="input-new-admin-pin" class="form-input" placeholder="Min 4 characters / digits" style="width: 100%; padding-right: 40px; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding-left: 12px; font-size: 0.95rem;" autocomplete="new-password">
+            <button type="button" class="btn-toggle-pin-visibility" data-target="input-new-admin-pin" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 1rem; padding: 4px;" title="Show/Hide">👁️</button>
+          </div>
+        </div>
+
+        <!-- Confirm New PIN -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label for="input-confirm-admin-pin" style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 5px;">
+            Confirm New Passcode (नया पासवर्ड दोबारा दर्ज करें) <span style="color: #ef4444;">*</span>
+          </label>
+          <div style="position: relative;">
+            <input type="password" id="input-confirm-admin-pin" class="form-input" placeholder="Re-enter new passcode" style="width: 100%; padding-right: 40px; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding-left: 12px; font-size: 0.95rem;" autocomplete="new-password">
+            <button type="button" class="btn-toggle-pin-visibility" data-target="input-confirm-admin-pin" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 1rem; padding: 4px;" title="Show/Hide">👁️</button>
+          </div>
+        </div>
+
+        <!-- Feedback Alert Messages -->
+        <div id="change-pin-msg" style="display: none; padding: 10px 14px; border-radius: 8px; font-size: 0.88rem; margin-top: 10px;"></div>
+      </div>
+      <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px;">
+        <button type="button" class="btn-cbt btn-cbt-gray" id="btn-cancel-change-pin">Cancel</button>
+        <button type="button" class="btn-cbt btn-cbt-primary" id="btn-save-new-pin">Save Passcode</button>
       </div>
     </div>
   </div>

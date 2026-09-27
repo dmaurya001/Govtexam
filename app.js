@@ -36,10 +36,43 @@ var state = {
   // Storage Keys & Cloud Sync
   STORAGE_KEY_SUBMISSIONS: "nursing_exam_submissions_v1",
   STORAGE_KEY_CONFIG: "nursing_exam_cloud_config_v1",
+  STORAGE_KEY_ADMIN_PIN: "govtexamhub_admin_pin_v1",
+  DEFAULT_ADMIN_PIN: "896062",
   ADMIN_PIN: "896062",
   DEFAULT_CLOUD_WEBHOOK_URL: "https://script.google.com/macros/s/AKfycbxQt0Pwhd1P-G1CNNHVCTODceLYBpjfhI3iPxXmNLKQgl2wPjHuLYlU4vBZOupQkPsO/exec",
   SPREADSHEET_URL: "https://docs.google.com/spreadsheets/d/1IjVmBmR-q2c7ZP9UORJAn3tqDIjzl2S_hzB0oW6LXhk/edit?gid=0#gid=0"
 };
+
+/**
+ * Access and manage dynamic Admin Passcode with persistence
+ */
+function getAdminPasscode() {
+  try {
+    const saved = localStorage.getItem(state.STORAGE_KEY_ADMIN_PIN);
+    if (saved && saved.trim()) return saved.trim();
+  } catch(e) {}
+  return state.ADMIN_PIN || state.DEFAULT_ADMIN_PIN || "896062";
+}
+
+function setAdminPasscode(newPin) {
+  if (!newPin || typeof newPin !== "string") return;
+  const trimmed = newPin.trim();
+  try {
+    localStorage.setItem(state.STORAGE_KEY_ADMIN_PIN, trimmed);
+  } catch(e) {}
+  state.ADMIN_PIN = trimmed;
+}
+
+function resetAdminPasscode() {
+  try {
+    localStorage.removeItem(state.STORAGE_KEY_ADMIN_PIN);
+  } catch(e) {}
+  state.ADMIN_PIN = state.DEFAULT_ADMIN_PIN || "896062";
+}
+
+window.getAdminPasscode = getAdminPasscode;
+window.setAdminPasscode = setAdminPasscode;
+window.resetAdminPasscode = resetAdminPasscode;
 window.state = state;
 
 /**
@@ -81,7 +114,8 @@ const modals = {
   submitConfirm: document.getElementById("modal-submit-confirm"),
   detailedPaper: document.getElementById("modal-detailed-paper"),
   adminAuth: document.getElementById("modal-admin-auth"),
-  cloudConfig: document.getElementById("modal-cloud-config")
+  cloudConfig: document.getElementById("modal-cloud-config"),
+  changeAdminPin: document.getElementById("modal-change-admin-pin")
 };
 
 // Initialize Application on DOM Ready
@@ -97,6 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initStudentAccountIntegration();
   }
   initInnovationSupportCard();
+  initAdminPasscodeManager();
   checkUrlTestModes();
 });
 
@@ -186,6 +221,140 @@ function initInnovationSupportCard() {
     });
   }
 }
+
+/**
+ * Admin Passcode Manager & Security Modal Logic
+ */
+function initAdminPasscodeManager() {
+  const btnHeaderChange = document.getElementById("btn-admin-change-pin");
+  const btnCardChange = document.getElementById("btn-open-change-pin-modal");
+  const btnResetDefault = document.getElementById("btn-reset-default-pin");
+  const modal = document.getElementById("modal-change-admin-pin");
+  const btnClose = document.getElementById("btn-close-change-pin-modal");
+  const btnCancel = document.getElementById("btn-cancel-change-pin");
+  const btnSave = document.getElementById("btn-save-new-pin");
+  const inputCurrent = document.getElementById("input-current-admin-pin");
+  const inputNew = document.getElementById("input-new-admin-pin");
+  const inputConfirm = document.getElementById("input-confirm-admin-pin");
+  const msgBox = document.getElementById("change-pin-msg");
+
+  function openChangePinModal() {
+    if (!modal) return;
+    if (inputCurrent) inputCurrent.value = "";
+    if (inputNew) inputNew.value = "";
+    if (inputConfirm) inputConfirm.value = "";
+    if (msgBox) {
+      msgBox.style.display = "none";
+      msgBox.textContent = "";
+      msgBox.style.background = "";
+      msgBox.style.color = "";
+    }
+    modal.classList.add("active");
+    if (inputCurrent) setTimeout(() => inputCurrent.focus(), 120);
+  }
+
+  function closeChangePinModal() {
+    if (modal) modal.classList.remove("active");
+  }
+
+  if (btnHeaderChange) btnHeaderChange.addEventListener("click", openChangePinModal);
+  if (btnCardChange) btnCardChange.addEventListener("click", openChangePinModal);
+  if (btnClose) btnClose.addEventListener("click", closeChangePinModal);
+  if (btnCancel) btnCancel.addEventListener("click", closeChangePinModal);
+
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeChangePinModal();
+    });
+  }
+
+  // Password visibility toggles
+  document.querySelectorAll(".btn-toggle-pin-visibility").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.getAttribute("data-target");
+      const targetInput = document.getElementById(targetId);
+      if (targetInput) {
+        if (targetInput.type === "password") {
+          targetInput.type = "text";
+          btn.textContent = "🙈";
+        } else {
+          targetInput.type = "password";
+          btn.textContent = "👁️";
+        }
+      }
+    });
+  });
+
+  // Save new passcode handler
+  function handleSaveNewPasscode() {
+    const current = (inputCurrent ? inputCurrent.value : "").trim();
+    const newPin = (inputNew ? inputNew.value : "").trim();
+    const confirmPin = (inputConfirm ? inputConfirm.value : "").trim();
+    const validCurrent = getAdminPasscode();
+
+    if (!msgBox) return;
+
+    if (!current) {
+      showPinMsg("❌ Please enter your current passcode (वर्तमान पासवर्ड दर्ज करें).", "#fef2f2", "#b91c1c");
+      if (inputCurrent) inputCurrent.focus();
+      return;
+    }
+    if (current !== validCurrent) {
+      showPinMsg("❌ Current passcode is incorrect (वर्तमान पासवर्ड गलत है).", "#fef2f2", "#b91c1c");
+      if (inputCurrent) { inputCurrent.value = ""; inputCurrent.focus(); }
+      return;
+    }
+    if (!newPin || newPin.length < 4) {
+      showPinMsg("❌ New passcode must be at least 4 characters/digits (नया पासवर्ड कम से कम 4 अक्षर या अंक का होना चाहिए).", "#fef2f2", "#b91c1c");
+      if (inputNew) inputNew.focus();
+      return;
+    }
+    if (newPin !== confirmPin) {
+      showPinMsg("❌ New passcode and confirm passcode do not match (दोनों पासवर्ड समान होने चाहिए).", "#fef2f2", "#b91c1c");
+      if (inputConfirm) inputConfirm.focus();
+      return;
+    }
+
+    // Save with persistence
+    setAdminPasscode(newPin);
+    showPinMsg("✅ Success! Admin passcode updated successfully (पासवर्ड सफलतापूर्वक बदल गया).", "#f0fdf4", "#15803d");
+
+    setTimeout(() => {
+      closeChangePinModal();
+    }, 1800);
+  }
+
+  function showPinMsg(text, bg, color) {
+    if (!msgBox) return;
+    msgBox.textContent = text;
+    msgBox.style.background = bg;
+    msgBox.style.color = color;
+    msgBox.style.border = `1px solid ${color}40`;
+    msgBox.style.display = "block";
+  }
+
+  if (btnSave) btnSave.addEventListener("click", handleSaveNewPasscode);
+
+  [inputCurrent, inputNew, inputConfirm].forEach(inp => {
+    if (inp) {
+      inp.addEventListener("keyup", (e) => {
+        if (e.key === "Enter") handleSaveNewPasscode();
+      });
+    }
+  });
+
+  // Reset to default
+  if (btnResetDefault) {
+    btnResetDefault.addEventListener("click", () => {
+      const confirmReset = confirm("Are you sure you want to reset the admin passcode to default (896062)?\nक्या आप वाकई पासवर्ड को डिफ़ॉल्ट (896062) पर रीसेट करना चाहते हैं?");
+      if (confirmReset) {
+        resetAdminPasscode();
+        alert("✅ Admin passcode reset to default (896062)!\nपासवर्ड 896062 पर रीसेट हो गया है।");
+      }
+    });
+  }
+}
+
 
 /**
  * URL Test Automation Modes for Testing and Screenshots
@@ -379,6 +548,16 @@ function checkUrlTestModes() {
     }
   } else if (testMode === "test_admin_auth") {
     modals.adminAuth.classList.add("active");
+  } else if (testMode === "test_admin_change_pin") {
+    showScreen("admin");
+    renderAdminDashboard();
+    const pinModal = document.getElementById("modal-change-admin-pin");
+    if (pinModal) pinModal.classList.add("active");
+  } else if (testMode === "test_admin_security_panel") {
+    showScreen("admin");
+    renderAdminDashboard();
+    const secTab = document.getElementById("tab-btn-security");
+    if (secTab) secTab.click();
   }
 
   if (params.get("auth_tab") === "login") {
@@ -2501,8 +2680,9 @@ function renderDetailedQuestionsList(filterType) {
 function handleAdminLogin() {
   const pin = document.getElementById("admin-pin-input").value.trim();
   const errElem = document.getElementById("admin-auth-err");
+  const validPin = typeof getAdminPasscode === "function" ? getAdminPasscode() : (state.ADMIN_PIN || "896062");
 
-  if (pin === state.ADMIN_PIN) {
+  if (pin === validPin) {
     modals.adminAuth.classList.remove("active");
     renderAdminDashboard();
     showScreen("admin");
