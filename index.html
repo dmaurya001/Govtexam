@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GovtExamHub — All Government Exam Practice | Deepak Mock Test</title>
+  <meta name="description"
+    content="GovtExamHub — Authentic Government Exam Practice Platform. Real exam patterns for NEET UG 2026, SSC, Banking, Railways, Police, Teaching, and State Exams.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5">
+  <style>
+    /* ============================================================
+       DEEPAK MOCK TEST — ANIMATED SPLASH SCREEN
+       ============================================================ */
+    #dmt-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: linear-gradient(145deg, #0B2D5C 0%, #1557B0 55%, #0B2D5C 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+    }
+
+    #dmt-splash.dmt-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Corner decorations */
+    #dmt-splash::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      left: -80px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: rgba(255, 138, 0, 0.15);
+      animation: dmt-pulse 3s ease-in-out infinite;
+    }
+
+    #dmt-splash::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: rgba(255, 138, 0, 0.1);
+      animation: dmt-pulse 3s ease-in-out infinite 0.5s;
+    }
+
+    @keyframes dmt-pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+    }
+
+    .dmt-splash-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .dmt-logo-wrap {
+      width: 180px;
+      height: 180px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(255, 138, 0, 0.4);
+      opacity: 0;
+      transform: scale(0.6);
+      animation: dmt-logo-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+    }
+
+    .dmt-logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    @keyframes dmt-logo-in {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .dmt-welcome-to {
+      margin-top: 24px;
+      font-family: 'Poppins', 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: rgba(255, 255, 255, 0.85);
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: dmt-fadein 0.5s ease 0.9s forwards;
+    }
+
+    .dmt-welcome-to::before,
+    .dmt-welcome-to::after {
+      content: '—';
+      margin: 0 8px;
+      opacity: 0.5;
+    }
+
+    .dmt-brand-name {
+      font-family: 'Poppins', 'Inter', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: 1px;
+      line-height: 1.1;
+      margin-top: 6px;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: dmt-fadein 0.6s ease 1.3s forwards;
+    }
+
+    .dmt-platform-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: #FF8A00;
+      color: #FFFFFF;
+      font-family: 'Poppins', 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      padding: 6px 28px;
+      border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(255, 138, 0, 0.4);
+      opacity: 0;
+      transform: scale(0.85);
+      animation: dmt-badge-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 1.7s forwards;
+    }
+
+    @keyframes dmt-badge-in {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .dmt-subtitle {
+      margin-top: 14px;
+      font-family: 'Poppins', 'Inter', sans-serif;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 400;
+      opacity: 0;
+      animation: dmt-fadein 0.5s ease 2.1s forwards;
+    }
+
+    .dmt-tagline {
+      margin-top: 6px;
+      font-family: 'Poppins', 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 1px;
+      opacity: 0;
+      animation: dmt-fadein 0.5s ease 2.4s forwards;
+    }
+
+    .dmt-tagline span {
+      color: #FF8A00;
+    }
+
+    /* Loading progress bar */
+    .dmt-progress-wrap {
+      margin-top: 28px;
+      width: 220px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      overflow: hidden;
+      opacity: 0;
+      animation: dmt-fadein 0.4s ease 2.6s forwards;
+    }
+
+    .dmt-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #FF8A00, #FFB347);
+      border-radius: 10px;
+      animation: dmt-progress-fill 1.1s ease 2.6s forwards;
+    }
+
+    @keyframes dmt-progress-fill {
+      0% {
+        width: 0%;
+      }
+
+      100% {
+        width: 100%;
+      }
+    }
+
+    @keyframes dmt-fadein {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* DMT Logo in website header/branding areas */
+    .dmt-brand-img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .dmt-brand-img-sm {
+      height: 28px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .dmt-header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .dmt-logo-wrap {
+        width: 130px;
+        height: 130px;
+      }
+
+      .dmt-progress-wrap {
+        width: 160px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================================================================
+       DEEPAK MOCK TEST — ANIMATED SPLASH SCREEN
+       Appears on initial load/refresh, fades out after ~3.5s
+       ========================================================================= -->
+  <div id="dmt-splash" role="dialog" aria-label="Deepak Mock Test Loading" aria-modal="true">
+    <div class="dmt-splash-inner">
+      <!-- Official Deepak Mock Test Logo -->
+      <div class="dmt-logo-wrap">
+        <img src="assets/deepak_mock_test_logo.jpg" alt="Deepak Mock Test Logo" draggable="false">
+      </div>
+      <!-- Text Content -->
+      <div class="dmt-welcome-to">WELCOME TO</div>
+      <div class="dmt-brand-name">GovtExamHub</div>
+      <div class="dmt-platform-badge">ALL GOVT EXAM PRACTICE</div>
+      <div class="dmt-subtitle">Original Examination Pattern System • By Deepak Maurya</div>
+      <div class="dmt-tagline">Prepare <span>•</span> Practice <span>•</span> Perform</div>
+      <!-- Orange Loading Progress -->
+      <div class="dmt-progress-wrap">
+        <div class="dmt-progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Splash screen auto-dismiss after 3.5 seconds (or immediately if test/nosplash mode)
+    (function () {
+      var splash = document.getElementById('dmt-splash');
+      if (!splash) return;
+      if (window.location.search && (window.location.search.indexOf('mode=') !== -1 || window.location.search.indexOf('nosplash') !== -1)) {
+        splash.style.display = 'none';
+        if (splash.parentNode) splash.parentNode.removeChild(splash);
+        return;
+      }
+      setTimeout(function () {
+        splash.classList.add('dmt-hidden');
+        // Remove from DOM after fade completes to free memory
+        setTimeout(function () {
+          if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+        }, 800);
+      }, 3500);
+    })();
+  </script>
+
+  <!-- =========================================================================
+       SCREEN 1: CANDIDATE REGISTRATION & EXAM INSTRUCTIONS
+       ========================================================================= -->
+  <section id="screen-welcome" class="screen active">
+    <div class="welcome-container">
+
+      <!-- Top Welcome Header -->
+      <div class="welcome-header">
+        <div class="dmt-header-logo">
+          <img src="assets/deepak_mock_test_logo.jpg" alt="Deepak Mock Test" class="dmt-brand-img">
+          <div>
+            <h1>GovtExamHub — All Government Exam Practice</h1>
+            <span class="dmt-header-sub"
+              style="font-size: 0.8rem; color: #64748b; font-weight: 500; display: block; margin-top: 2px;">Official
+              Pattern CBT Portal • Educator: Deepak Maurya</span>
+          </div>
+        </div>
+        <button id="btn-open-admin-auth" class="admin-portal-btn" title="शिक्षक / एडमिन पोर्टल">
+          <span>🔐</span>
+          <span>Teacher / Admin Portal</span>
+        </button>
+      </div>
+
+      <!-- Welcome Hero Banner / Platform Overview + Animated Innovation Support Card -->
+      <div class="welcome-hero-banner"
+        style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #0369a1 100%); color: #fff; border-radius: var(--radius-lg); padding: 22px 28px; margin-bottom: 24px; box-shadow: var(--shadow-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div style="max-width: 660px; flex: 1 1 480px;">
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+            <span
+              style="background: rgba(255,255,255,0.2); color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.5px;">✓
+              OFFICIAL CBT PRACTICE SYSTEM</span>
+            <span
+              style="background: #22c55e; color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 700;">🟢
+              13+ Govt Exams Available in Student Dashboard</span>
+          </div>
+          <h2 style="font-size: 1.45rem; font-weight: 800; color: #fff; margin: 0 0 6px 0; line-height: 1.3;">
+            1 Student = 1 Permanent Account • सम्पूर्ण सरकारी परीक्षा तैयारी
+          </h2>
+          <p style="font-size: 0.92rem; color: #cbd5e1; margin: 0; line-height: 1.5;">
+            Register once or login below to enter your Personal Student Dashboard. Inside your dashboard, choose any
+            Government Exam (NEET UG, SSC, Banking, Police, Nursing, O Level, CCC, Railway, UPSSSC, etc.), take live CBT
+            mock tests, and track your complete performance history!
+          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
+            <div
+              style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 12px; text-align: center;">
+              <div style="font-size: 1.15rem; font-weight: 800; color: #fbbf24; line-height: 1.1;">13+</div>
+              <div style="font-size: 0.72rem; color: #e2e8f0;">Govt Exams</div>
+            </div>
+            <div
+              style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 12px; text-align: center;">
+              <div style="font-size: 1.15rem; font-weight: 800; color: #38bdf8; line-height: 1.1;">100%</div>
+              <div style="font-size: 0.72rem; color: #e2e8f0;">Real CBT Pattern</div>
+            </div>
+            <div
+              style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 6px 12px; text-align: center;">
+              <div style="font-size: 1.15rem; font-weight: 800; color: #4ade80; line-height: 1.1;">Permanent</div>
+              <div style="font-size: 0.72rem; color: #e2e8f0;">Result History</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HIGHLIGHTED & ANIMATED: NEED SUPPORT FOR NEXT INNOVATION CARD -->
+        <div class="innovation-support-badge-card" id="innovation-support-card">
+          <div class="support-badge-header">
+            <span class="support-pulse-dot"></span>
+            <span class="support-badge-title">🚀 NEED SUPPORT FOR NEXT INNOVATION</span>
+          </div>
+          <div class="support-card-content">
+            <div class="support-qr-box" id="btn-open-support-qr-modal" title="Click to enlarge & scan QR">
+              <img src="assets/deepak_upi_qr.jpg" alt="UPI QR Code - Deepak Maurya" class="support-qr-img">
+              <div class="support-qr-scan-line"></div>
+              <span class="support-qr-hint">🔍 Tap to Scan</span>
+            </div>
+            <div class="support-details-box">
+              <div class="support-author-name">
+                <span>Deepak Maurya</span>
+                <span class="verified-check" title="Verified Creator">✓</span>
+              </div>
+              <p class="support-callout-text">
+                अगले नए AI इनोवेशन व सर्वर मेंटेनेंस के लिए सहयोग करें (Support Next Innovation)
+              </p>
+              <div class="support-upi-pill" id="btn-copy-upi-hero" title="Click to Copy UPI ID">
+                <span class="upi-id-text">8960627330@ptaxis</span>
+                <button type="button" class="btn-copy-upi" id="btn-copy-upi-action">
+                  <span id="copy-upi-label">📋 Copy</span>
+                </button>
+              </div>
+              <div class="support-apps-row">
+                <span class="app-chip paytm">Paytm</span>
+                <span class="app-chip phonepe">PhonePe</span>
+                <span class="app-chip gpay">GPay</span>
+                <span class="app-chip bhim">BHIM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="welcome-grid">
+
+        <!-- Left: Platform Guidelines & CBT Features -->
+        <div class="card">
+          <h2 class="card-title">
+            <span>📋</span>
+            <span id="welcome-instructions-heading">Govt CBT Examination Portal — Candidate Guidelines & Features</span>
+          </h2>
+
+          <div class="portal-feature-highlights-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0 18px 0;">
+            <div
+              style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; text-align: center;">
+              <span style="font-size: 1.2rem; display: block; margin-bottom: 2px;">🏛️</span>
+              <strong style="font-size: 0.82rem; color: #1e40af; display: block;">13+ Govt Exams</strong>
+              <span style="font-size: 0.72rem; color: #64748b;">NEET, SSC, Police, Banking...</span>
+            </div>
+            <div
+              style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px; text-align: center;">
+              <span style="font-size: 1.2rem; display: block; margin-bottom: 2px;">💻</span>
+              <strong style="font-size: 0.82rem; color: #166534; display: block;">Real CBT Engine</strong>
+              <span style="font-size: 0.72rem; color: #64748b;">NTA & TCS-iON Standard</span>
+            </div>
+            <div
+              style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px; text-align: center;">
+              <span style="font-size: 1.2rem; display: block; margin-bottom: 2px;">⚖️</span>
+              <strong style="font-size: 0.82rem; color: #9a3412; display: block;">Official Marking</strong>
+              <span style="font-size: 0.72rem; color: #64748b;">Real negative deduction</span>
+            </div>
+            <div
+              style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 10px; text-align: center;">
+              <span style="font-size: 1.2rem; display: block; margin-bottom: 2px;">📊</span>
+              <strong style="font-size: 0.82rem; color: #6b21a8; display: block;">Lifetime History</strong>
+              <span style="font-size: 0.72rem; color: #64748b;">All mocks permanently saved</span>
+            </div>
+          </div>
+
+          <ul class="instruction-list">
+            <li>
+              <span class="icon">✓</span>
+              <div>
+                <strong>Language / भाषा:</strong> Question paper is bilingual (English & Hindi). You can switch viewing
+                modes anytime during the exam.
+              </div>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <div>
+                <strong>Navigation / नेविगेशन:</strong> You can jump to any question using the Question Palette on the
+                right or using the Section tabs at the top.
+              </div>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <div>
+                <strong>Dynamic Question Shuffling / प्रश्न क्रम:</strong> Har test attempt me naye sequence aur
+                shuffled options milenge taaki transparent practice ho sake.
+              </div>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <div>
+                <strong>Real CBT Color Codes / रंग संकेत:</strong>
+                <div class="palette-sample-grid">
+                  <div class="sample-item">
+                    <span class="sample-badge badge-answered">1</span>
+                    <span>Answered / उत्तर दिया</span>
+                  </div>
+                  <div class="sample-item">
+                    <span class="sample-badge badge-not-answered">2</span>
+                    <span>Not Answered / उत्तर नहीं दिया</span>
+                  </div>
+                  <div class="sample-item">
+                    <span class="sample-badge badge-not-visited">3</span>
+                    <span>Not Visited / देखा नहीं</span>
+                  </div>
+                  <div class="sample-item">
+                    <span class="sample-badge badge-review">4</span>
+                    <span>Review / समीक्षा हेतु</span>
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li>
+              <span class="icon">✓</span>
+              <div>
+                <strong>Saving Answer / उत्तर सहेजना:</strong> Click <strong>Save & Next</strong> to save your answer.
+                To change your response, click on another option or use <strong>Clear Response</strong>.
+              </div>
+            </li>
+            <li>
+              <span class="icon">⚠️</span>
+              <div>
+                <strong>Anti-Cheating Monitoring:</strong> Switching tabs or minimizing the browser will be flagged and
+                recorded with your submission.
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Right: Candidate Registration & Student Login (Permanent Account System) -->
+        <div class="card student-auth-card">
+          <!-- Highlighted Access Header -->
+          <div class="auth-card-header-badge">
+            <span class="auth-badge-dot"></span>
+            <strong>CBT Portal Access / छात्र पोर्टल प्रवेश</strong>
+            <span class="auth-badge-sub">&bull; 1 Student = 1 Permanent Account</span>
+          </div>
+
+          <!-- Auth Mode Switcher -->
+          <div class="student-auth-tabs">
+            <button type="button" class="auth-toggle-btn active" id="btn-auth-mode-register">
+              <span>📝 One-Time Registration / नया पंजीकरण</span>
+            </button>
+            <button type="button" class="auth-toggle-btn" id="btn-auth-mode-login">
+              <span>🔑 Student Login / छात्र लॉगिन</span>
+            </button>
+          </div>
+
+          <!-- Portal Universal Access Note (Choose Exam is inside Dashboard) -->
+          <div class="auth-welcome-note"
+            style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: 0.84rem; color: #334155; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.3rem;">🎓</span>
+            <div style="line-height: 1.4;">
+              <strong>One Student = One Permanent Account:</strong>
+              <span style="display: block; color: #64748b; font-size: 0.78rem; margin-top: 2px;">Register once to access
+                and take mock tests for <strong>all 13+ Government Exams</strong> directly from your personal
+                dashboard.</span>
+            </div>
+            <!-- Hidden legacy anchors for safe JS fallback -->
+            <span id="reg-exam-title" style="display: none;">All Government Exams</span>
+            <span id="reg-exam-icon" style="display: none;">🏛️</span>
+            <span id="reg-exam-badge" style="display: none;">Live</span>
+          </div>
+
+          <!-- Logged-in Student Status Card (Appears if already logged in) -->
+          <div id="student-active-session-card" class="student-active-session-card" style="display: none;">
+            <div class="active-student-profile-row">
+              <img id="active-session-photo" src="assets/deepak_mock_test_logo.jpg" alt="Student Photo"
+                class="active-student-thumb">
+              <div class="active-student-details">
+                <div class="active-student-greeting">
+                  <span>Welcome back,</span> <strong id="active-session-name">Student Name</strong>
+                </div>
+                <div class="active-student-meta">
+                  Permanent ID: <strong id="active-session-id" class="student-id-pill">GMH20260001</strong> &bull; <span
+                    id="active-session-phone">8960627330</span>
+                </div>
+              </div>
+            </div>
+            <div class="active-session-actions">
+              <button type="button" class="btn-start-exam" id="btn-start-logged-in-exam" style="margin-top: 10px;">
+                <span>📊 Open My Student Dashboard & Choose Exam / डैशबोर्ड खोलें &rarr;</span>
+              </button>
+              <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button type="button" class="btn-dash-action" id="btn-welcome-goto-dashboard" style="flex: 1;">
+                  <span>🎯 Choose Exam in Dashboard</span>
+                </button>
+                <button type="button" class="btn-dash-action danger" id="btn-welcome-logout" style="width: auto;">
+                  <span>🚪 Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form 1: One-Time Registration Form -->
+          <form id="candidate-form">
+            <div class="form-group">
+              <label for="student-name">Full Name / पूरा नाम <span class="req-star">*</span></label>
+              <input type="text" id="student-name" placeholder="e.g. Deepak Maurya" required autocomplete="name">
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="student-phone">Mobile / WhatsApp Number <span class="req-star">*</span></label>
+                <input type="tel" id="student-phone" placeholder="e.g. 8960627330 (10 Digits)" required
+                  autocomplete="tel" pattern="[0-9]{10}" title="Please enter a 10-digit mobile number">
+              </div>
+              <div class="form-group">
+                <label for="student-roll">Roll Number (Optional / रोल नंबर)</label>
+                <input type="text" id="student-roll" placeholder="Auto-generated if left empty" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="student-batch">Category / Reservation / आरक्षण वर्ग <span class="req-star">*</span></label>
+              <select id="student-batch" required class="form-select">
+                <option value="" disabled selected>-- Select Category / आरक्षण चुनें * --</option>
+                <option value="General / Unreserved">General (UR) / अनारक्षित</option>
+                <option value="OBC (Non-Creamy)">OBC (Non-Creamy Layer) / अन्य पिछड़ा वर्ग</option>
+                <option value="EWS (Economically Weaker)">EWS / आर्थिक रूप से कमजोर</option>
+                <option value="SC (Scheduled Caste)">SC / अनुसूचित जाति</option>
+                <option value="ST (Scheduled Tribe)">ST / अनुसूचित जनजाति</option>
+                <option value="Regular Aspirant Batch">Regular Aspirant Batch 2026</option>
+              </select>
+            </div>
+
+            <!-- Profile Photo Upload Box (Required for new registration, Max 5 MB) -->
+            <div class="form-group photo-upload-group">
+              <label for="reg-student-photo">
+                Profile / Passport Photo / पासपोर्ट फोटो <span class="req-star">*</span>
+                <span class="photo-guidance-sub">Upload a recent passport-size photograph with a clear face and clean
+                  background (Max 5 MB, JPG/PNG/WEBP).</span>
+              </label>
+              <div class="photo-upload-container">
+                <div class="photo-preview-box" id="reg-photo-preview-box">
+                  <img id="reg-photo-preview-img" src="assets/deepak_mock_test_logo.jpg" alt="Preview"
+                    style="display: none;">
+                  <span class="preview-placeholder-text" id="reg-preview-placeholder">📷 No Photo Chosen</span>
+                </div>
+                <div class="photo-upload-controls">
+                  <input type="file" id="reg-student-photo" accept="image/jpeg,image/jpg,image/png,image/webp"
+                    style="display: none;">
+                  <button type="button" class="btn-choose-photo" id="btn-browse-photo">
+                    <span>📷 Upload Passport Photo</span>
+                  </button>
+                  <button type="button" class="btn-clear-photo" id="btn-change-reg-photo" style="display: none;">
+                    <span>🔄 Change Photo</span>
+                  </button>
+                  <span class="photo-file-status" id="reg-photo-file-status">Max size: 5 MB</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Password & Confirm Password -->
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label for="student-password">Password / पासवर्ड <span class="req-star">*</span></label>
+                <div class="password-input-wrap">
+                  <input type="password" id="student-password" placeholder="At least 6 characters" required
+                    autocomplete="new-password">
+                  <button type="button" class="btn-toggle-eye" data-target="student-password" tabindex="-1">👁️</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="student-conf-password">Confirm Password <span class="req-star">*</span></label>
+                <div class="password-input-wrap">
+                  <input type="password" id="student-conf-password" placeholder="Re-enter password" required
+                    autocomplete="new-password">
+                  <button type="button" class="btn-toggle-eye" data-target="student-conf-password"
+                    tabindex="-1">👁️</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="declaration-box">
+              <label>
+                <input type="checkbox" id="declaration-check" required>
+                <span>I confirm my details are accurate and I understand this creates my permanent student account.
+                  <span class="req-star">*</span></span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn-start-exam" id="btn-start-exam">
+              <span id="btn-start-exam-text">🚀 Register & Create Permanent Account / खाता बनाएं</span>
+            </button>
+          </form>
+
+          <!-- Form 2: Returning Student Login Form -->
+          <form id="student-login-form" style="display: none;">
+            <div class="form-group">
+              <label for="login-student-id">Student ID or Mobile / छात्र आईडी या मोबाइल <span
+                  class="req-star">*</span></label>
+              <input type="text" id="login-student-id" placeholder="e.g. GMH20260001 or 8960627330" required
+                autocomplete="username">
+            </div>
+
+            <div class="form-group">
+              <label for="login-student-password">Password / पासवर्ड <span class="req-star">*</span></label>
+              <div class="password-input-wrap">
+                <input type="password" id="login-student-password" placeholder="Enter your password" required
+                  autocomplete="current-password">
+                <button type="button" class="btn-toggle-eye" data-target="login-student-password"
+                  tabindex="-1">👁️</button>
+              </div>
+            </div>
+
+            <div class="login-options-row">
+              <button type="button" class="btn-link-forgot-pass" id="btn-trigger-forgot-pass">
+                Forgot Password? / पासवर्ड भूल गए?
+              </button>
+            </div>
+
+            <button type="submit" class="btn-start-exam" id="btn-submit-login">
+              <span>🔑 Login to Student Dashboard / लॉगिन करें &rarr;</span>
+            </button>
+          </form>
+
+        </div>
+
+      </div>
+
+      <!-- =========================================================================
+           OFFICIAL PORTAL FOOTER (Background #0B2D5C, Text #FFFFFF, Hover #FF8A00)
+           ========================================================================= -->
+      <footer class="portal-site-footer">
+        <div class="footer-inner">
+          <div class="footer-brand-col">
+            <div class="dmt-footer-logo">
+              <img src="assets/deepak_mock_test_logo.jpg" alt="Deepak Mock Test Logo" class="dmt-brand-img">
+              <div class="footer-brand-titles">
+                <div class="footer-brand-name">GovtExamHub</div>
+                <div class="footer-brand-tagline">All Government Exam Practice Platform • By Deepak Maurya</div>
+              </div>
+            </div>
+            <p class="footer-desc">
+              Authentic Computer-Based Test (CBT) simulation for all major Central and State Government examinations.
+              Timed tests, official negative marking, and bilingual Hindi & English question papers.
+            </p>
+            <div class="footer-badges">
+              <span class="footer-badge">🛡️ Timed CBT Exam</span>
+              <span class="footer-badge">🎯 13 Live Categories</span>
+              <span class="footer-badge">⚡ Real-time Analytics</span>
+            </div>
+          </div>
+
+          <div class="footer-contact-col">
+            <h4>Teacher / Helpdesk Guidance</h4>
+            <div class="footer-teacher-card">
+              <div class="footer-teacher-name">👨‍🏫 Deepak Maurya</div>
+              <div class="footer-teacher-role">Teacher & CBT Examination Coordinator</div>
+              <div class="footer-contact-item">
+                <span>📞 WhatsApp Support:</span>
+                <a href="https://wa.me/918960627330" target="_blank" rel="noopener">8960627330</a>
+              </div>
+              <div class="footer-contact-item">
+                <span>📸 Instagram:</span>
+                <a href="https://www.instagram.com/_dmaurya001" target="_blank" rel="noopener">@_dmaurya001</a>
+              </div>
+            </div>
+            <p class="footer-security-note">
+              🔒 <strong>Exam Integrity & Transparency:</strong> All test submissions and performance scorecards are
+              automatically synchronized in real-time.
+            </p>
+          </div>
+        </div>
+
+        <!-- Important Non-Affiliation Disclaimer (Fulfills: Platform Trust & Transparency Rules) -->
+        <div class="official-portal-disclaimer">
+          <div class="disclaimer-inner">
+            <span class="disclaimer-icon">⚖️</span>
+            <div class="disclaimer-text">
+              <strong>Official Notice & Non-Affiliation Disclaimer:</strong> GovtExamHub is an independent educational
+              practice platform and is <strong>NOT affiliated with, endorsed by, or authorized by</strong> any
+              government recruitment agency or testing authority (including NTA, SSC, IBPS, RRB, UPSSSC, CBSE, or State
+              Examination Authorities). All examination names, patterns, and question sets are prepared strictly for
+              student practice, education, and examination readiness based on publicly available notifications.
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom-bar">
+          <div class="footer-bottom-inner">
+            <p>&copy; 2026 Deepak Mock Test. All rights reserved. Designed for Government Exam Aspirants.</p>
+            <div class="footer-bottom-links">
+              <a href="#screen-welcome">Top / ऊपर जाएं &uarr;</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       SCREEN 2: REAL CBT EXAM WORKSPACE (NTA / TCS-iON Style)
+       ========================================================================= -->
+  <section id="screen-cbt" class="screen">
+    <div class="cbt-container">
+
+      <!-- Top Navigation & Timer Bar -->
+      <header class="cbt-topbar">
+        <div class="cbt-brand">
+          <img src="assets/deepak_mock_test_logo.jpg" alt="Deepak Mock Test" class="dmt-brand-img-sm"
+            style="border-radius:6px;">
+          <div class="cbt-title-text">
+            <h2 id="cbt-header-title">GovtExamHub — All Government Exam Practice</h2>
+            <span id="cbt-header-subtitle">Official CBT Mock Test • Total 100 MCQs</span>
+          </div>
+        </div>
+
+        <div class="cbt-timer-flex">
+          <!-- Overall Continuous Exam Timer -->
+          <div class="cbt-timer-box">
+            <div class="timer-label" id="exam-timer-label">Time Left</div>
+            <div class="timer-countdown" id="timer-display">02:00:00</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Continuous Mock Navigation & Controls Subbar -->
+      <nav class="cbt-subbar">
+        <div class="cbt-active-info" id="cbt-continuous-nav-info">
+          <span class="cbt-paper-title-pill" id="cbt-paper-title-pill">📝 Exam Mock Test</span>
+          <span class="cbt-active-subject-badge" id="cbt-active-subject-badge">Subject: General</span>
+        </div>
+
+        <div class="cbt-controls-right">
+          <!-- Language Mode Switcher -->
+          <select id="lang-switcher" class="lang-select" title="Change Question Display Language">
+            <option value="both">🌐 Bilingual (English + Hindi)</option>
+            <option value="en">English Only</option>
+            <option value="hi">हिंदी केवल</option>
+          </select>
+
+          <!-- Font Size Adjuster -->
+          <div class="font-size-ctrls">
+            <button id="btn-font-dec" title="Decrease Font">A-</button>
+            <button id="btn-font-reset" title="Normal Font">A</button>
+            <button id="btn-font-inc" title="Increase Font">A+</button>
+          </div>
+
+          <!-- Fullscreen Toggle -->
+          <button id="btn-fullscreen-toggle" class="btn-cbt btn-cbt-gray" title="Toggle Fullscreen">⛶
+            Fullscreen</button>
+
+          <!-- Mobile Palette Drawer Toggle -->
+          <button id="btn-mobile-palette" class="btn-cbt btn-cbt-primary btn-mobile-palette-toggle">☰ Palette</button>
+        </div>
+      </nav>
+
+      <!-- Main CBT Workspace: Left Question Area + Right Question Palette -->
+      <div class="cbt-workspace">
+
+        <!-- Left: Question & Options Display -->
+        <main class="cbt-question-area">
+
+          <!-- Prominent Live Remaining Time Banner (Fulfills: "usme time bhi dikhe stundet jab exam de rha ho ki apka time itna bacha hua h") -->
+          <div class="cbt-remaining-time-banner" id="cbt-remaining-time-banner">
+            <div class="time-banner-left">
+              <span class="live-clock-icon">⏳</span>
+              <span>बचा हुआ समय (Time Left): <strong id="live-time-text">02 घंटे 00 मिनट 00 सेकंड</strong></span>
+            </div>
+            <div class="time-banner-right">
+              <span class="time-pill-badge" id="live-time-pill-badge">🟢 परीक्षा जारी है</span>
+              <span class="time-warning-text" id="live-time-warning-text" style="display: none;">⚠️ ध्यान दें! समय
+                समाप्त होने वाला है!</span>
+            </div>
+          </div>
+
+          <div class="question-meta-bar">
+            <div class="question-num-tag" id="q-meta-tag">
+              Question No. 1
+            </div>
+            <div class="marking-scheme">
+              Marking: Correct <strong class="positive" id="q-marking-pos">+1.00</strong> | Negative <strong
+                class="negative" id="q-marking-neg">0.00</strong>
+            </div>
+          </div>
+
+          <div class="question-scroll-content" id="question-content-container">
+            <div class="question-box">
+              <div class="q-text-en" id="q-text-en">Loading Question...</div>
+              <div class="q-text-hi" id="q-text-hi">लोड हो रहा है...</div>
+            </div>
+
+            <!-- Radio Options -->
+            <div class="options-container" id="options-container">
+              <!-- Dynamically populated options A, B, C, D -->
+            </div>
+
+            <!-- Practice Mode Instant Solution & Explanation Card -->
+            <div class="practice-explanation-card" id="practice-explanation-card" style="display: none;">
+              <div class="practice-exp-header">
+                <span id="practice-result-badge" class="practice-badge">💡 Solution & Explanation</span>
+                <button type="button" class="btn-toggle-exp" id="btn-toggle-practice-exp">Hide ▲</button>
+              </div>
+              <div class="practice-exp-body" id="practice-exp-body">
+                <div class="practice-correct-opt" id="practice-correct-opt">Correct Option: <strong>Option B</strong>
+                </div>
+                <div class="practice-exp-text" id="practice-exp-text">Detailed explanation will appear here...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons Toolbar -->
+          <footer class="cbt-action-footer">
+            <div class="action-left-btns">
+              <button class="btn-cbt btn-cbt-gray" id="btn-prev-question">◀ Prev</button>
+              <button class="btn-cbt btn-cbt-gray" id="btn-clear-response">Clear</button>
+              <button class="btn-cbt btn-cbt-purple" id="btn-mark-review">Review</button>
+              <button class="btn-cbt btn-cbt-teal" id="btn-practice-check-ans" style="display: none;">💡 View
+                Solution</button>
+              <button class="btn-cbt btn-cbt-gray btn-palette-toggle-btn" id="btn-mobile-palette-footer">☰
+                Palette</button>
+            </div>
+
+            <div class="action-right-btns">
+              <button class="btn-cbt btn-cbt-primary" id="btn-save-next">Save & Next ▶</button>
+              <button class="btn-cbt btn-cbt-submit" id="btn-open-submit-modal">Submit Exam</button>
+            </div>
+          </footer>
+
+        </main>
+
+        <!-- Right: Palette Panel (1 to N questions grid) -->
+        <aside class="cbt-palette-panel" id="cbt-palette-panel">
+
+          <!-- Candidate mini card -->
+          <div class="candidate-card-mini">
+            <div class="candidate-avatar" id="palette-candidate-avatar">S</div>
+            <div class="candidate-info">
+              <h4 id="palette-candidate-name">Student Name</h4>
+              <p id="palette-candidate-roll">Roll: BSC-0000</p>
+            </div>
+            <button type="button" id="btn-close-palette-drawer" class="btn-close-drawer"
+              title="Close Palette">&times;</button>
+          </div>
+
+          <!-- Palette Legend (5 CBT Statuses per official spec) -->
+          <div class="palette-legend-compact">
+            <div class="legend-chip">
+              <span class="legend-badge badge-answered" id="count-answered">0</span>
+              <span>Answered</span>
+            </div>
+            <div class="legend-chip">
+              <span class="legend-badge badge-not-answered" id="count-not-answered">0</span>
+              <span>Not Answered</span>
+            </div>
+            <div class="legend-chip">
+              <span class="legend-badge badge-visited" id="count-visited" style="background:#2563EB;">0</span>
+              <span>Visited</span>
+            </div>
+            <div class="legend-chip">
+              <span class="legend-badge badge-not-visited" id="count-not-visited">100</span>
+              <span>Not Visited</span>
+            </div>
+            <div class="legend-chip">
+              <span class="legend-badge badge-review" id="count-review">0</span>
+              <span>Marked for Review</span>
+            </div>
+          </div>
+
+          <!-- Palette Question Grid Header (Dynamically displays 1-N) -->
+          <div class="palette-grid-header">
+            <span id="palette-total-range">QUESTION PALETTE</span>
+            <span id="palette-current-section-name">Subject</span>
+          </div>
+
+          <!-- Question Grid 1 to 100 -->
+          <div class="palette-grid-scroll">
+            <div class="q-grid" id="question-palette-grid">
+              <!-- 100 Question buttons generated by JS -->
+            </div>
+          </div>
+
+          <!-- Mobile close palette button / Submit exam trigger -->
+          <div class="palette-bottom-action">
+            <button class="btn-cbt btn-cbt-submit" style="width: 100%; justify-content: center;"
+              id="btn-palette-submit">
+              Submit Test Paper
+            </button>
+          </div>
+
+        </aside>
+
+      </div>
+
+      <!-- Backdrop for mobile slide-in palette drawer -->
+      <div class="palette-backdrop" id="palette-backdrop"></div>
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       SUBMIT CONFIRMATION MODAL
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-submit-confirm">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Exam Summary & Final Submission</h3>
+        <button class="modal-close-btn" id="btn-close-submit-modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="color: #475569; margin-bottom: 12px;">
+          Please review your attempt status before final submission. Once submitted, you cannot change your answers.
+        </p>
+
+        <table class="exam-summary-table">
+          <thead>
+            <tr>
+              <th>Section</th>
+              <th>Total</th>
+              <th>Answered</th>
+              <th>Not Answered</th>
+              <th>Marked Review</th>
+              <th>Not Visited</th>
+            </tr>
+          </thead>
+          <tbody id="summary-table-body">
+            <!-- Dynamically populated summary stats -->
+          </tbody>
+        </table>
+
+        <div
+          style="margin-top: 20px; padding: 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 0.88rem;">
+          ⚠️ <strong>Note:</strong> All questions marked for review without choosing an option will not be evaluated.
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cbt btn-cbt-gray" id="btn-cancel-submit">Return to Exam</button>
+        <button class="btn-cbt btn-cbt-submit" id="btn-confirm-final-submit">Yes, Submit Exam</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       SCREEN 3: STUDENT RESULT & SCORECARD SCREEN
+       ========================================================================= -->
+  <section id="screen-result" class="screen">
+    <div class="result-container">
+
+      <div class="result-hero">
+        <div id="result-history-sync-badge"
+          style="background:rgba(16, 185, 129, 0.2); border:1.5px solid #10b981; color:#ecfdf5; border-radius:20px; padding:6px 18px; margin:0 auto 12px; font-size:0.88rem; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+          <span>✅ Test Completed & Successfully Saved to Your Permanent Student Account!</span>
+        </div>
+        <h2 id="result-candidate-greeting">Congratulations, Deepak Maurya!</h2>
+        <p>Your examination has been submitted and recorded in your permanent mock test history.</p>
+
+        <div class="score-circle-wrapper">
+          <div class="score-val" id="result-total-score">0</div>
+          <div class="score-max" id="result-max-score">/ 100 Marks</div>
+        </div>
+
+        <div style="font-size: 1.1rem; color: #7dd3fc; font-weight: 600;" id="result-percentage-tag">
+          Percentage: 0% • Accuracy: 0%
+        </div>
+
+        <div class="result-marking-summary-badges" id="result-marking-summary-badges">
+          <span class="score-pill score-pill-pos" id="pill-pos-marks">✓ Positive Marks: +0.00</span>
+          <span class="score-pill score-pill-neg" id="pill-neg-marks">✗ Negative Deduction: -0.00</span>
+          <span class="score-pill score-pill-net" id="pill-net-score">🎯 Net Marks: 0.00</span>
+        </div>
+      </div>
+
+      <!-- Comprehensive Scorecard Overview Card -->
+      <div class="result-scorecard-card"
+        style="background:#fff; border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; margin:24px 0 20px; box-shadow:var(--shadow-sm);">
+        <div class="scorecard-header-row"
+          style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:14px; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <div class="scorecard-candidate-meta"
+            style="display:flex; gap:20px; flex-wrap:wrap; font-size:0.92rem; color:#1e293b;">
+            <div><span style="color:#64748b;">Exam:</span> <strong id="res-exam-name" style="color:#0B2D5C;">Exam Mock
+                Test</strong></div>
+            <div><span style="color:#64748b;">Candidate:</span> <strong id="res-candidate-name">Student Name</strong>
+            </div>
+            <div><span style="color:#64748b;">Roll Number:</span> <strong id="res-candidate-roll">ROLL-000</strong>
+            </div>
+          </div>
+          <span
+            style="background:#e0f2fe; color:#0369a1; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:700;">✓
+            Official Pattern Scorecard</span>
+        </div>
+
+        <div class="scorecard-metrics-grid"
+          style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px;">
+          <div class="metric-item"
+            style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#64748b; font-weight:600; display:block;">Total Questions</span>
+            <strong id="res-total-qs" style="font-size:1.15rem; color:#0f172a;">100</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#64748b; font-weight:600; display:block;">Attempted</span>
+            <strong id="res-attempted-qs" style="font-size:1.15rem; color:#1d4ed8;">0</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#166534; font-weight:600; display:block;">Correct</span>
+            <strong id="res-correct-qs" style="font-size:1.15rem; color:#16a34a;">0</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#991b1b; font-weight:600; display:block;">Wrong</span>
+            <strong id="res-wrong-qs" style="font-size:1.15rem; color:#dc2626;">0</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#64748b; font-weight:600; display:block;">Unattempted</span>
+            <strong id="res-unattempted-qs" style="font-size:1.15rem; color:#64748b;">0</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#166534; font-weight:600; display:block;">Positive Marks</span>
+            <strong id="res-pos-marks" style="font-size:1.15rem; color:#16a34a;">+0.00</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#991b1b; font-weight:600; display:block;">Negative Deduction</span>
+            <strong id="res-neg-marks" style="font-size:1.15rem; color:#dc2626;">-0.00</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#1e40af; font-weight:600; display:block;">Net Score</span>
+            <strong id="res-net-score" style="font-size:1.15rem; color:#1557B0;">0.00</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#64748b; font-weight:600; display:block;">Maximum Marks</span>
+            <strong id="res-max-marks" style="font-size:1.15rem; color:#0f172a;">100</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#64748b; font-weight:600; display:block;">Percentage</span>
+            <strong id="res-percentage" style="font-size:1.15rem; color:#0f172a;">0.0%</strong>
+          </div>
+          <div class="metric-item"
+            style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:10px 14px; text-align:center;">
+            <span style="font-size:0.75rem; color:#9a3412; font-weight:600; display:block;">Accuracy</span>
+            <strong id="res-accuracy" style="font-size:1.15rem; color:#ea580c;">0.0%</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject-Wise Performance Breakdown Header -->
+      <div
+        style="margin: 18px 0 12px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+        <h3 style="font-size: 1.15rem; color: #0B2D5C; font-weight: 700; margin: 0;">📊 Subject-Wise Performance
+          Analysis / विषयवार विश्लेषण:</h3>
+        <span style="font-size: 0.85rem; color: #64748b;">(Correct / Wrong / Unattempted / Marks per subject)</span>
+      </div>
+
+      <!-- Subject Breakdown Grid -->
+      <div class="subject-breakdown-grid" id="result-subject-cards">
+        <!-- Dynamically populated score breakdown per subject -->
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="result-action-bar">
+        <button class="btn-result btn-cbt-primary" id="btn-result-goto-dashboard"
+          style="background: linear-gradient(135deg, #1d4ed8, #2563eb); color: #fff; font-size: 1.05rem; font-weight: 700; padding: 12px 24px; box-shadow: 0 4px 14px rgba(37,99,235,0.35); flex: 1 1 250px;">
+          <span>📊 View in My Student Dashboard & Mock History / डैशबोर्ड व टेस्ट इतिहास देखें &rarr;</span>
+        </button>
+        <button class="btn-result btn-review-paper" id="btn-student-review-paper">
+          <span>🔍 View Detailed Question Paper & Answers</span>
+        </button>
+        <button class="btn-result btn-whatsapp" id="btn-send-whatsapp">
+          <span>📲 Send Result to Teacher on WhatsApp (8960627330)</span>
+        </button>
+        <button class="btn-result btn-cbt-gray" id="btn-print-scorecard">
+          <span>🖨️ Print / Save Scorecard PDF</span>
+        </button>
+        <button class="btn-result btn-cbt-gray" id="btn-retake-exam">
+          <span>🎯 Start Another Mock / नया टेस्ट दें</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       SCREEN 5: PERMANENT PERSONAL STUDENT DASHBOARD & MOCK HISTORY
+       ONE STUDENT = ONE PERMANENT ACCOUNT
+       ========================================================================= -->
+  <section id="screen-student-dashboard" class="screen">
+    <div class="student-dashboard-container">
+
+      <!-- Top Student Dashboard Header -->
+      <header class="student-dashboard-header">
+        <div class="student-dash-brand">
+          <img src="assets/deepak_mock_test_logo.jpg" alt="GovtExamHub" class="dmt-brand-img">
+          <div>
+            <h2>GovtExamHub — Student Portal</h2>
+            <span style="font-size: 0.8rem; color: #64748b; font-weight: 500; display: block;">Personal Candidate
+              Dashboard & Performance Analytics</span>
+          </div>
+        </div>
+        <div class="student-header-actions">
+          <button type="button" class="btn-dash-action" id="btn-dash-goto-home">
+            <span>🏠 Portal Home</span>
+          </button>
+          <button type="button" class="btn-dash-action danger" id="btn-dash-logout">
+            <span>🚪 Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Student Profile Hero Card -->
+      <div class="student-profile-hero">
+        <div class="profile-photo-wrap">
+          <img id="dash-student-photo" src="assets/deepak_mock_test_logo.jpg" alt="Student Profile Photo"
+            class="student-avatar-img">
+          <button type="button" class="btn-change-photo-mini" id="btn-trigger-change-photo"
+            title="Change Profile Photo">
+            <span>📷</span>
+          </button>
+        </div>
+        <div class="profile-info-content">
+          <div class="profile-name-row">
+            <h1 id="dash-student-name">Student Name</h1>
+            <span class="student-status-badge active" id="dash-student-status-badge">Active</span>
+            <button type="button" id="dash-photo-missing-badge" class="photo-missing-badge" style="display: none;">
+              ⚠️ Complete Profile: Upload Photo
+            </button>
+          </div>
+          <div class="profile-meta-grid">
+            <div class="meta-item">
+              <span class="meta-lbl">Permanent Student ID:</span>
+              <strong id="dash-student-id" class="student-id-pill">GMH20260001</strong>
+            </div>
+            <div class="meta-item">
+              <span class="meta-lbl">Mobile / WhatsApp:</span>
+              <strong id="dash-student-phone">8960627330</strong>
+            </div>
+            <div class="meta-item">
+              <span class="meta-lbl">Category:</span>
+              <strong id="dash-student-batch">General (UR)</strong>
+            </div>
+            <div class="meta-item">
+              <span class="meta-lbl">Registered On:</span>
+              <strong id="dash-student-reg-date">Today</strong>
+            </div>
+            <div class="meta-item">
+              <span class="meta-lbl">Last Active:</span>
+              <strong id="dash-student-last-login">Just now</strong>
+            </div>
+          </div>
+        </div>
+        <div class="profile-actions-col">
+          <button type="button" class="btn-dash-profile-opt" id="btn-open-edit-profile">
+            <span>✏️ Edit Profile</span>
+          </button>
+          <button type="button" class="btn-dash-profile-opt" id="btn-open-change-photo">
+            <span>📷 Update Photo</span>
+          </button>
+          <button type="button" class="btn-dash-profile-opt" id="btn-open-change-pass">
+            <span>🔒 Change Password</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Personal Statistics Cards -->
+      <div class="student-stats-row">
+        <div class="student-stat-card">
+          <div class="stat-icon" style="background: #eff6ff; color: #1d4ed8;">📊</div>
+          <div>
+            <span class="stat-label">Total Mocks Attempted</span>
+            <h3 id="stat-student-total-mocks">0</h3>
+          </div>
+        </div>
+        <div class="student-stat-card">
+          <div class="stat-icon" style="background: #f0fdf4; color: #16a34a;">🎯</div>
+          <div>
+            <span class="stat-label">Average Score (%)</span>
+            <h3 id="stat-student-avg-score">0.0%</h3>
+          </div>
+        </div>
+        <div class="student-stat-card">
+          <div class="stat-icon" style="background: #fefce8; color: #ca8a04;">🏆</div>
+          <div>
+            <span class="stat-label">Best Score</span>
+            <h3 id="stat-student-best-score">0 Marks</h3>
+          </div>
+        </div>
+        <div class="student-stat-card">
+          <div class="stat-icon" style="background: #faf5ff; color: #9333ea;">⚡</div>
+          <div>
+            <span class="stat-label">Average Accuracy</span>
+            <h3 id="stat-student-avg-accuracy">0.0%</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           DASHBOARD SECTION: CHOOSE EXAM & MOCK TEST
+           Fulfills: "student ke dashboard me do ki o kis exam ka test dena chahta h 
+           pr do choose exam jo mock test dena ho"
+           ===================================================================== -->
+      <div class="exam-selector-card dash-exam-selector-card">
+        <div class="category-header-flex">
+          <div class="category-heading-group">
+            <span class="category-tag-pill">🎯 Choose Exam & Mock Test / परीक्षा व मॉक टेस्ट चुनें</span>
+            <h2 class="category-title" style="margin-top: 4px;">Select Exam Category / किस परीक्षा का टेस्ट देना है
+              चुनें:</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0 0;">
+              जिस परीक्षा का CBT टेस्ट देना चाहते हैं उस पर क्लिक करें। नीचे स्टेज/पेपर चुनें और "परीक्षा शुरू करें"
+              दबाएं।
+            </p>
+          </div>
+          <div class="category-status-summary">
+            <span class="pulse-indicator"></span> 13 Live Categories &bull; Real Exam Negative Marking
+          </div>
+        </div>
+
+        <!-- 13 Exam Category Tabs -->
+        <div class="exam-category-tabs" id="exam-category-tabs">
+          <button type="button" class="category-tab-btn" data-exam-id="neet">
+            <span class="cat-icon">🧬</span>
+            <span class="cat-name">NEET UG</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="nursing">
+            <span class="cat-icon">🩺</span>
+            <span class="cat-name">B.Sc. Nursing</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="ssc">
+            <span class="cat-icon">🎯</span>
+            <span class="cat-name">SSC</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="banking">
+            <span class="cat-icon">🏦</span>
+            <span class="cat-name">Banking</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="railway">
+            <span class="cat-icon">🚆</span>
+            <span class="cat-name">Railway</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="upsssc">
+            <span class="cat-icon">📑</span>
+            <span class="cat-name">UPSSSC</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="police">
+            <span class="cat-icon">👮</span>
+            <span class="cat-name">Police</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="defence">
+            <span class="cat-icon">🎖️</span>
+            <span class="cat-name">Defence</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="teaching">
+            <span class="cat-icon">👨‍🏫</span>
+            <span class="cat-name">Teaching</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="olevel">
+            <span class="cat-icon">💻</span>
+            <span class="cat-name">NIELIT O Level</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="ccc">
+            <span class="cat-icon">🖥️</span>
+            <span class="cat-name">NIELIT CCC</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="state">
+            <span class="cat-icon">🗺️</span>
+            <span class="cat-name">State Government Exams</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+          <button type="button" class="category-tab-btn" data-exam-id="other">
+            <span class="cat-icon">🌐</span>
+            <span class="cat-name">Other Government Exams</span>
+            <span class="cat-badge badge-live">Live</span>
+          </button>
+        </div>
+
+        <!-- Sub-Exam / Stage Selector Pills -->
+        <div class="sub-exam-selector-container" id="sub-exam-selector-container">
+          <div class="sub-exam-header-row">
+            <div class="sub-exam-title-group">
+              <span class="sub-exam-label">🎯 Select Examination Stage / Paper (मूल परीक्षा प्रारूप):</span>
+              <span class="sub-exam-desc-text">Official notification pattern per exam</span>
+            </div>
+            <span class="sub-exam-verified-badge" id="sub-exam-verified-badge">✓ Official Bulletin Verified</span>
+          </div>
+          <div class="sub-exam-pills" id="sub-exam-pills-list">
+            <!-- Dynamically populated sub-exam pills -->
+          </div>
+        </div>
+
+        <!-- Banner for Test Not Started -->
+        <div id="test-not-started-banner" class="test-not-started-banner" style="display: none;">
+          <div class="banner-icon-col">⚠️</div>
+          <div class="banner-text-col">
+            <div class="banner-title" id="banner-exam-title">Test Not Started / परीक्षा अभी शुरू नहीं हुई है</div>
+            <div class="banner-desc" id="banner-exam-desc">
+              इस परीक्षा (<strong id="banner-exam-name">Banking</strong>) का प्रश्न पत्र अभी उपलब्ध नहीं है। जैसे ही
+              प्रश्न पत्र तैयार होगा, टेस्ट शुरू कर दिया जाएगा। कृपया अभी उपलब्ध परीक्षा (SSC, Police, Nursing, O level,
+              CCC, NEET) चुनें।
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Exam Info & Action Box -->
+        <div class="dash-selected-exam-box">
+          <div class="dash-exam-info-col">
+            <div class="dash-exam-heading-row">
+              <span class="dash-exam-icon-large" id="dash-exam-icon-large">🧬</span>
+              <div>
+                <h3 id="dash-active-exam-title"
+                  style="margin: 0; font-size: 1.28rem; color: #0f172a; font-weight: 700;">NEET UG 2026 Pattern-Based
+                  Mock Test</h3>
+                <span id="dash-active-paper-badge"
+                  style="font-size: 0.82rem; color: #2563eb; font-weight: 600; display: inline-block; margin-top: 2px;">📝
+                  Paper Set 1 — Official Board Model Paper 2026</span>
+              </div>
+            </div>
+
+            <!-- Exam Chips -->
+            <div class="exam-info-chips" style="margin-top: 14px;">
+              <div class="chip">
+                <span>Total Questions</span>
+                <strong id="info-chip-questions">180</strong>
+              </div>
+              <div class="chip">
+                <span>Total Marks</span>
+                <strong id="info-chip-marks">720</strong>
+              </div>
+              <div class="chip">
+                <span>Time Allowed</span>
+                <strong id="info-chip-duration">180 Mins</strong>
+              </div>
+              <div class="chip">
+                <span>Marking Scheme</span>
+                <strong id="info-chip-marking">+4.0 / -1.00</strong>
+              </div>
+            </div>
+
+            <!-- Section Syllabus Overview for Selected Exam -->
+            <div class="section-overview-box" style="margin-top: 12px; margin-bottom: 0;">
+              <div class="section-overview-title">📌 Paper Pattern & Sections / प्रश्न पत्र प्रारूप:</div>
+              <div class="section-overview-tags" id="section-overview-tags">
+                <!-- Dynamically populated tags for active exam -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Launch Button Column -->
+          <div class="dash-exam-launch-col">
+            <button type="button" class="btn-launch-cbt-exam" id="btn-dash-start-exam">
+              <span id="btn-dash-start-exam-text">🚀 Start CBT Exam Now / परीक्षा शुरू करें &rarr;</span>
+            </button>
+            <div class="dash-launch-subtext">
+              🔒 Real CBT Interface • Automatic Scoring • Saved to Mock History
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Mock Widget in Dashboard -->
+        <div id="daily-mock-info-widget" class="daily-mock-widget-wrapper" style="margin-top: 16px;"></div>
+      </div>
+
+      <!-- Dashboard Tabs: Recent Mocks vs Complete Mock History vs My Profile -->
+      <div class="student-tabs-wrapper">
+        <div class="student-tab-buttons">
+          <button type="button" class="stu-tab-btn active" id="stu-tab-recent" data-tab="tab-recent-content">
+            <span>⏱️ Recent Attempts (अंतिम 5-10 टेस्ट)</span>
+          </button>
+          <button type="button" class="stu-tab-btn" id="stu-tab-history" data-tab="tab-history-content">
+            <span>📚 Complete Mock History & Results (सम्पूर्ण इतिहास)</span>
+          </button>
+          <button type="button" class="stu-tab-btn" id="stu-tab-profile" data-tab="tab-profile-content">
+            <span>👤 My Profile (मेरी प्रोफाइल)</span>
+          </button>
+          <button type="button" class="stu-tab-btn" id="btn-refresh-history" title="Refresh Mock Test History"
+            style="margin-left:auto; border:1.5px solid #2563eb; color:#1d4ed8; background:#eff6ff; font-weight:700; border-radius:8px; padding:6px 14px; cursor:pointer; font-size:0.85rem; display:inline-flex; align-items:center; gap:6px;">
+            <span>🔄 Refresh History / रिफ्रेश करें</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Recent Mocks -->
+        <div id="tab-recent-content" class="stu-tab-pane active">
+          <div id="recent-mocks-list" class="recent-mocks-grid">
+            <!-- Dynamically populated recent attempts -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Complete Mock History -->
+        <div id="tab-history-content" class="stu-tab-pane" style="display: none;">
+          <div class="history-controls-row">
+            <div class="history-search-input-wrap">
+              <span>🔍</span>
+              <input type="text" id="stu-history-search" placeholder="Search by exam name or paper...">
+            </div>
+            <div class="history-filter-wrap">
+              <label for="stu-history-filter-exam">Filter Exam:</label>
+              <select id="stu-history-filter-exam" class="form-select">
+                <option value="all">All Exams / सभी परीक्षाएं</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="student-table">
+              <thead>
+                <tr>
+                  <th style="width: 55px; text-align: center;">#</th>
+                  <th style="min-width: 170px;">Exam & Paper</th>
+                  <th style="min-width: 120px;">Submitted At</th>
+                  <th style="min-width: 110px;">Score & %</th>
+                  <th style="min-width: 130px; text-align: center;">Performance</th>
+                  <th style="min-width: 80px; text-align: center;">Accuracy</th>
+                  <th style="min-width: 130px; text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="stu-history-tbody">
+                <!-- Dynamically populated mock history -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Detailed Profile View & Edit -->
+        <div id="tab-profile-content" class="stu-tab-pane" style="display: none;">
+          <div class="profile-details-card">
+            <h3>👤 Candidate Profile Information</h3>
+            <form id="form-inline-edit-profile">
+              <div class="form-row-2col">
+                <div class="form-group">
+                  <label>Permanent Student ID (Immutable / अपरिवर्तनीय)</label>
+                  <input type="text" id="profile-display-id" readonly class="form-input"
+                    style="background: #f1f5f9; font-weight: 700; color: #1e3a8a;">
+                </div>
+                <div class="form-group">
+                  <label for="profile-edit-name">Full Name / पूरा नाम <span class="req-star">*</span></label>
+                  <input type="text" id="profile-edit-name" required class="form-input">
+                </div>
+              </div>
+              <div class="form-row-2col">
+                <div class="form-group">
+                  <label for="profile-edit-phone">Mobile / WhatsApp Number <span class="req-star">*</span></label>
+                  <input type="tel" id="profile-edit-phone" required pattern="[0-9]{10}" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-edit-batch">Category / Reservation <span class="req-star">*</span></label>
+                  <select id="profile-edit-batch" required class="form-select">
+                    <option value="General / Unreserved">General (UR) / अनारक्षित</option>
+                    <option value="OBC (Non-Creamy)">OBC (Non-Creamy Layer) / अन्य पिछड़ा वर्ग</option>
+                    <option value="EWS (Economically Weaker)">EWS / आर्थिक रूप से कमजोर</option>
+                    <option value="SC (Scheduled Caste)">SC / अनुसूचित जाति</option>
+                    <option value="ST (Scheduled Tribe)">ST / अनुसूचित जनजाति</option>
+                    <option value="Regular Aspirant Batch">Regular Aspirant Batch 2026</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row-2col">
+                <div class="form-group">
+                  <label for="profile-edit-dob">Date of Birth / जन्म तिथि</label>
+                  <input type="date" id="profile-edit-dob" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label for="profile-edit-father">Father's Name / पिता का नाम</label>
+                  <input type="text" id="profile-edit-father" placeholder="Optional" class="form-input">
+                </div>
+              </div>
+              <div style="margin-top: 14px;">
+                <button type="submit" class="btn-dash-action"
+                  style="background: #16a34a; color: #fff; padding: 10px 24px;">
+                  <span>💾 Save Profile Changes / परिवर्तन सहेजें</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       SCREEN 4: TEACHER / ADMIN PORTAL (DATA RECORDING & CANDIDATE MONITORING)
+       ========================================================================= -->
+  <section id="screen-admin" class="screen">
+    <header class="admin-header">
+      <h2>
+        <img src="assets/deepak_mock_test_logo.jpg" alt="Deepak Mock Test"
+          style="height:30px;width:auto;border-radius:6px;vertical-align:middle;margin-right:6px;">
+        <span>Teacher Admin Dashboard — Quiz Submissions & Analytics</span>
+      </h2>
+      <div class="admin-header-actions">
+        <a href="https://docs.google.com/spreadsheets/d/1IjVmBmR-q2c7ZP9UORJAn3tqDIjzl2S_hzB0oW6LXhk/edit?gid=0#gid=0"
+          target="_blank" class="btn-admin success" title="Open Connected Google Sheet" id="btn-open-live-sheet"
+          style="text-decoration: none;">
+          <span>📊 Open Live Google Sheet</span>
+        </a>
+        <button class="btn-admin" id="btn-admin-cloud-config" title="Google Sheets / Cloud Webhook">
+          <span>☁️ Cloud Sync Settings</span>
+        </button>
+        <button class="btn-admin primary" id="btn-exit-admin">
+          <span>🏠 Student Portal</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+
+      <!-- Cloud Live Sync Status Banner -->
+      <div class="cloud-sync-banner" id="cloud-sync-banner">
+        <div class="cloud-sync-status-left">
+          <span class="live-pulse-dot" id="cloud-pulse-dot"></span>
+          <span id="cloud-sync-status-text">☁️ Central Cloud Database: Loading student submissions from all
+            devices...</span>
+        </div>
+        <div class="cloud-sync-status-right">
+          <span class="cloud-last-sync" id="cloud-last-sync-time">Last synced: Checking...</span>
+          <button class="btn-refresh-cloud" id="btn-refresh-cloud" title="Fetch latest submissions from all devices">
+            <span>🔄 Refresh Live Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Tabs: Submissions, Paper Manager, Daily Limits, Daily Mock -->
+      <div class="admin-tab-nav">
+        <button type="button" class="admin-tab-btn active" id="tab-btn-submissions" data-panel="panel-submissions">
+          <span>📊 Results & Submissions (छात्र परिणाम)</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-papers" data-panel="panel-papers">
+          <span>📝 Paper Sets (प्रश्न पत्र 1-5)</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-security" data-panel="panel-security">
+          <span>🛡️ Daily Limits (छात्र सीमा)</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-daily-mock" data-panel="panel-daily-mock">
+          <span>🗓️ Daily Mock Slot (दैनिक मॉक)</span>
+        </button>
+        <button type="button" class="admin-tab-btn" id="tab-btn-students" data-panel="panel-students">
+          <span>👨‍🎓 Student Accounts (छात्र खाते)</span>
+        </button>
+      </div>
+
+      <!-- PANEL 1: Submissions & Results -->
+      <div id="panel-submissions" class="admin-tab-panel active">
+        <!-- Top Stat Cards -->
+        <div class="admin-stat-cards">
+          <div class="stat-card">
+            <div class="stat-icon blue">👥</div>
+            <div class="stat-info">
+              <span>Total Submissions</span>
+              <h3 id="stat-total-students">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🎯</div>
+            <div class="stat-info">
+              <span>Class Average</span>
+              <h3 id="stat-avg-score">0% (0 M)</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">🏆</div>
+            <div class="stat-info">
+              <span>Highest Score</span>
+              <h3 id="stat-high-score">0 Marks</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">📈</div>
+            <div class="stat-info">
+              <span>Pass Rate (≥ 50%)</span>
+              <h3 id="stat-pass-rate">0%</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="admin-toolbar">
+          <div class="admin-search-box">
+            <span style="margin-right: 8px; color: #94a3b8;">🔍</span>
+            <input type="text" id="admin-search-input" placeholder="Search by name, roll number, or mobile...">
+          </div>
+
+          <div class="admin-sort-wrap" style="display: flex; align-items: center; gap: 8px;">
+            <label for="admin-sort-select"
+              style="font-size: 0.84rem; font-weight: 700; color: #334155; white-space: nowrap;">Sort By / क्रम:</label>
+            <select id="admin-sort-select" class="form-select"
+              style="padding: 7px 12px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; border: 1.5px solid #cbd5e1; background: #fff; color: #1e3a8a; cursor: pointer;">
+              <option value="latest" selected>⏱️ Latest Submission First (नया टेस्ट सबसे ऊपर)</option>
+              <option value="score_desc">🏆 Highest Marks (सबसे ज्यादा अंक)</option>
+              <option value="score_asc">📉 Lowest Marks (कम अंक)</option>
+              <option value="oldest">📅 Oldest First (पुराना पहले)</option>
+            </select>
+          </div>
+
+          <div class="admin-btn-group">
+            <button class="btn-admin primary" id="btn-sync-all-to-sheets"
+              title="Sync all saved student submissions to Google Sheet">
+              <span>☁️ Sync to Google Sheet</span>
+            </button>
+            <button class="btn-admin success" id="btn-export-csv" title="Download all student records as Excel CSV">
+              <span>📥 Export Excel (CSV)</span>
+            </button>
+            <button class="btn-admin" id="btn-clear-all-data" title="Clear all local student submission records">
+              <span>🗑️ Reset Records</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submissions Table (Desktop & Tablet) -->
+        <div class="table-container">
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th style="width: 65px; text-align: center;"># / Rank</th>
+                <th style="min-width: 170px;">Candidate Details</th>
+                <th style="min-width: 140px;">Exam & Paper</th>
+                <th style="min-width: 120px;">Mobile / WhatsApp</th>
+                <th style="min-width: 110px;">Score & %</th>
+                <th style="min-width: 145px; text-align: center;">Performance</th>
+                <th style="min-width: 110px;">Submitted At</th>
+                <th style="min-width: 130px; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-submissions-tbody">
+              <!-- Dynamically populated student rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Student Cards View (Optimized for Smartphones) -->
+        <div class="mobile-student-cards-container" id="admin-submissions-cards">
+          <!-- Dynamically populated cards for mobile view -->
+        </div>
+      </div>
+
+      <!-- PANEL 5: Auto Daily Mock System -->
+      <div id="panel-daily-mock" class="admin-tab-panel" style="display: none;">
+        <div id="admin-daily-mock-panel">
+          <!-- Populated by renderAdminDailyMockPanel() in daily_slot_service.js -->
+          <div style="padding: 32px; text-align: center; color: #64748b;">
+            <div style="font-size: 2.5rem; margin-bottom: 12px;">🗓</div>
+            <div style="font-size: 1rem; font-weight: 600;">Loading Daily Mock System...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL 6: Permanent Student Accounts Management -->
+      <div id="panel-students" class="admin-tab-panel" style="display: none;">
+        <!-- Top Stat Cards -->
+        <div class="admin-stat-cards" style="margin-bottom: 20px;">
+          <div class="stat-card">
+            <div class="stat-icon blue">👨‍🎓</div>
+            <div class="stat-info">
+              <span>Total Permanent Students</span>
+              <h3 id="stat-admin-total-students">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+              <span>Active Accounts</span>
+              <h3 id="stat-admin-active-students">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">🚫</div>
+            <div class="stat-info">
+              <span>Suspended Accounts</span>
+              <h3 id="stat-admin-suspended-students">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Accounts Toolbar -->
+        <div class="admin-toolbar" style="margin-bottom: 16px;">
+          <div class="admin-search-box" style="flex: 1;">
+            <span style="margin-right: 8px; color: #94a3b8;">🔍</span>
+            <input type="text" id="admin-student-search-input"
+              placeholder="Search student by Name, Student ID, or Mobile...">
+          </div>
+          <button type="button" class="btn-admin primary" id="btn-admin-refresh-students">
+            <span>🔄 Refresh Student List</span>
+          </button>
+        </div>
+
+        <!-- Student Accounts Table -->
+        <div class="table-container">
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align: center;">Photo</th>
+                <th style="min-width: 130px;">Student ID</th>
+                <th style="min-width: 160px;">Student Name</th>
+                <th style="min-width: 120px;">Mobile Number</th>
+                <th style="min-width: 120px;">Category</th>
+                <th style="min-width: 110px;">Registered On</th>
+                <th style="min-width: 80px; text-align: center;">Total Mocks</th>
+                <th style="min-width: 90px; text-align: center;">Status</th>
+                <th style="min-width: 160px; text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-students-tbody">
+              <!-- Dynamically populated student rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANEL 2: Question Paper Management (Fulfills: "admin section se mai choose kr du ki ccc me ajj ye paper krwana h") -->
+      <div id="panel-papers" class="admin-tab-panel" style="display: none;">
+        <!-- Exam selector and active paper banner -->
+        <div class="paper-mgmt-header-card">
+          <div class="paper-mgmt-exam-row">
+            <div class="form-group" style="margin-bottom: 0; min-width: 280px;">
+              <label for="admin-paper-exam-select" style="font-weight: 700; color: #1e3a8a;">
+                🎯 Select Exam to Manage Papers / परीक्षा चुनें:
+              </label>
+              <select id="admin-paper-exam-select" class="form-select" style="font-weight: 600;">
+                <!-- Populated dynamically with all 14 exams -->
+              </select>
+            </div>
+            <div class="active-paper-status-pill">
+              <span class="live-pulse-dot"></span>
+              <span>Currently Active for Students Today: <strong id="admin-active-set-title">Paper Set 1</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Available Paper Sets Grid (Set 1 to 5 + Custom) -->
+        <div class="paper-sets-section-title">
+          <h3>📚 Available Question Paper Sets / उपलब्ध प्रश्न पत्र सेट:</h3>
+          <span style="font-size: 0.85rem; color: #64748b;">(जिस पेपर को आज टेस्ट में देना हो, उसे "Activate for Today"
+            करें)</span>
+        </div>
+
+        <div class="paper-sets-grid" id="admin-paper-sets-grid">
+          <!-- Dynamically populated paper cards -->
+        </div>
+
+        <!-- Upload New Question Paper Box -->
+        <div class="upload-custom-paper-card">
+          <div class="upload-header">
+            <h3>📤 Upload / Add New Question Paper Set (नया प्रश्न पत्र अपलोड करें)</h3>
+            <span style="font-size: 0.82rem; color: #475569;">आप किसी भी परीक्षा के लिए नए 100 प्रश्नों का सेट यहाँ जोड़
+              सकते हैं</span>
+          </div>
+
+          <form id="admin-upload-paper-form">
+            <div class="upload-form-grid">
+              <div class="form-group">
+                <label for="upload-paper-title">Paper Set Title / प्रश्न पत्र का नाम <span
+                    class="req-star">*</span></label>
+                <input type="text" id="upload-paper-title" placeholder="e.g. CCC Super Practice Mock (26 Sept 2026)"
+                  required>
+              </div>
+              <div class="form-group">
+                <label for="upload-paper-code">Paper Code / पेपर कोड <span class="req-star">*</span></label>
+                <input type="text" id="upload-paper-code" placeholder="e.g. CCC-SET-06" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="upload-paper-desc">Short Description / विवरण</label>
+              <input type="text" id="upload-paper-desc"
+                placeholder="e.g. 100 Real Exam MCQs with Bilingual Explanations">
+            </div>
+
+            <div class="form-group">
+              <label for="upload-paper-json">
+                Questions Data (JSON Format) / प्रश्न डेटा (JSON) <span class="req-star">*</span>
+                <button type="button" class="btn-sample-json" id="btn-load-sample-json"
+                  style="margin-left: 10px; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; cursor: pointer;">Load
+                  100 Questions Sample Template</button>
+              </label>
+              <textarea id="upload-paper-json" rows="6"
+                placeholder='[{"id": 1, "questionEn": "...", "questionHi": "...", "options": [{"id":"A","textEn":"..","textHi":".."},...], "correctAnswer": "A", "explanation": "..."}]'
+                style="font-family: monospace; font-size: 0.82rem; width: 100%; border: 1.5px solid var(--border-color); border-radius: 6px; padding: 10px;"
+                required></textarea>
+            </div>
+
+            <div class="upload-actions">
+              <button type="submit" class="btn-admin primary" id="btn-save-paper-set">
+                <span>💾 Save to Available Paper Sets</span>
+              </button>
+              <button type="button" class="btn-admin success" id="btn-save-and-activate-paper">
+                <span>⚡ Save & Activate for Students Immediately</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- PANEL 3: Security & Daily Attempt Limits (Fulfills: "ek people 2 exam se jyada n de sakee ek din me exam") -->
+      <div id="panel-security" class="admin-tab-panel" style="display: none;">
+        <!-- Security Overview Cards -->
+        <div class="security-overview-card">
+          <div class="security-rule-flex">
+            <div class="security-rule-info">
+              <span class="security-badge-pill">🛡️ Daily Security Status: Open / Unlimited</span>
+              <h3>Daily Exam Limit Policy: <strong id="admin-display-max-limit" style="color: #2563eb;">Unlimited (No
+                  Limit)</strong></h3>
+              <p style="color: #64748b; font-size: 0.88rem; margin-top: 4px;">
+                प्रत्येक छात्र को परीक्षा देने की पूरी स्वतंत्रता है। छात्र अपनी तैयारी के अनुसार बिना किसी दैनिक रोक के
+                असीमित परीक्षाएं दे सकते हैं।
+              </p>
+            </div>
+            <div class="security-limit-adjuster">
+              <label for="admin-max-daily-limit-select"
+                style="font-size: 0.85rem; font-weight: 600; color: #334155;">Daily Limit Policy / दैनिक सीमा:</label>
+              <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <select id="admin-max-daily-limit-select" class="form-select" style="padding: 8px 12px; width: 140px;">
+                  <option value="999" selected>Unlimited (No Limit)</option>
+                  <option value="1">1 Exam / Day</option>
+                  <option value="2">2 Exams / Day</option>
+                  <option value="3">3 Exams / Day</option>
+                  <option value="5">5 Exams / Day</option>
+                </select>
+                <button type="button" class="btn-admin primary" id="btn-save-daily-limit">Save Policy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Attempt Summary Statistics -->
+        <div class="admin-stat-cards" style="margin-bottom: 20px;">
+          <div class="stat-card">
+            <div class="stat-icon blue">📅</div>
+            <div class="stat-info">
+              <span>Today's Date</span>
+              <h3 id="stat-security-today-date">26-09-2026</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">👥</div>
+            <div class="stat-info">
+              <span>Candidates Tested Today</span>
+              <h3 id="stat-security-total-candidates">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⏳</div>
+            <div class="stat-info">
+              <span>1 Attempt Used (1 Left)</span>
+              <h3 id="stat-security-one-attempt">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">🚫</div>
+            <div class="stat-info">
+              <span>2/2 Limit Reached (Blocked)</span>
+              <h3 id="stat-security-blocked-candidates">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Attempts Table -->
+        <div class="security-table-toolbar"
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="font-size: 1.1rem; color: #0f172a;">📋 Today's Candidate Attempt Log (आज की परीक्षा प्रयास सूची):
+          </h3>
+          <button type="button" class="btn-admin" id="btn-reset-all-daily-attempts"
+            style="background: #fef2f2; border-color: #fecaca; color: #991b1b;">
+            <span>🔄 Reset All Daily Limits for Today</span>
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Candidate Name</th>
+                <th>Roll Number</th>
+                <th>Mobile Number</th>
+                <th>Exams Taken Today</th>
+                <th>Daily Limit Status</th>
+                <th>Last Attempt Time</th>
+                <th>Action (Teacher Override)</th>
+              </tr>
+            </thead>
+            <tbody id="security-attempts-tbody">
+              <!-- Dynamically populated daily attempt rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANEL 4: Verified Exam Patterns Management & Inspection Table -->
+      <div id="panel-patterns" class="admin-tab-panel" style="display: none;">
+        <div class="patterns-mgmt-header">
+          <div class="patterns-mgmt-title">
+            <span class="security-badge-pill">📋 Official Notification Database</span>
+            <h3>GovtExamHub Verified Examination Patterns (मूल परीक्षा प्रारूप)</h3>
+            <p style="color: #64748b; font-size: 0.88rem; margin-top: 4px;">
+              प्रत्येक परीक्षा का परीक्षा प्रारूप (प्रश्नों की संख्या, समय, अंकन प्रणाली एवं नेगेटिव मार्किंग) नवीनतम
+              आधिकारिक परीक्षा अधिसूचना (Official Notification/Information Bulletin) के आधार पर सत्यापित है।
+            </p>
+          </div>
+          <div class="patterns-toolbar-row" style="display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap;">
+            <div class="patterns-search-wrap"
+              style="flex: 1; min-width: 260px; display: flex; align-items: center; background: #fff; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 6px 12px;">
+              <span style="margin-right: 6px; color: #94a3b8;">🔍</span>
+              <input type="text" id="admin-pattern-search" placeholder="Search exam by name, authority, or stage..."
+                style="border: none; outline: none; width: 100%; font-size: 0.9rem;">
+            </div>
+            <select id="admin-pattern-category-filter" class="form-select" style="max-width: 220px; font-weight: 600;">
+              <option value="all">All Categories (13 Categories)</option>
+              <option value="neet">NEET (UG)</option>
+              <option value="ssc">SSC</option>
+              <option value="banking">Banking</option>
+              <option value="railway">Railway</option>
+              <option value="upsssc">UPSSSC</option>
+              <option value="police">Police</option>
+              <option value="defence">Defence</option>
+              <option value="teaching">Teaching</option>
+              <option value="nursing">B.Sc. Nursing</option>
+              <option value="olevel">O level</option>
+              <option value="ccc">CCC</option>
+              <option value="state">State Exams</option>
+              <option value="other">Other Govt Exams</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Pattern Statistics Cards -->
+        <div class="admin-stat-cards" style="margin-top: 16px; margin-bottom: 20px;">
+          <div class="stat-card">
+            <div class="stat-icon blue">📚</div>
+            <div class="stat-info">
+              <span>Verified Patterns</span>
+              <h3 id="stat-patterns-total">22</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🧬</div>
+            <div class="stat-info">
+              <span>NEET UG 2026</span>
+              <h3>180 Qs • 720 M</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">🏦</div>
+            <div class="stat-info">
+              <span>Sectional Timing</span>
+              <h3>Banking (20m/Sec)</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">🛡️</div>
+            <div class="stat-info">
+              <span>Official Status</span>
+              <h3>100% Bulletins</h3>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="student-table admin-patterns-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Exam Name</th>
+                <th>Stage / Paper</th>
+                <th>Questions</th>
+                <th>Total Marks</th>
+                <th>Duration</th>
+                <th>Correct</th>
+                <th>Negative</th>
+                <th>Timing Mode</th>
+                <th>Official Source Bulletin</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-patterns-tbody">
+              <!-- Dynamically populated verified patterns -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </section>
+
+
+  <!-- =========================================================================
+       MODAL: DETAILED STUDENT ANSWER SHEET (SHOWS ALL 100 QUESTIONS & OPTIONS)
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-detailed-paper">
+    <div class="modal-card detailed-paper-modal">
+
+      <div class="modal-header">
+        <h3 id="detailed-paper-title">Candidate Detailed Response Sheet</h3>
+        <button class="modal-close-btn" id="btn-close-detailed-paper">&times;</button>
+      </div>
+
+      <div class="paper-summary-header" id="detailed-paper-candidate-header">
+        <!-- Candidate details & score stats -->
+      </div>
+
+      <!-- Question Filter Tabs -->
+      <div class="paper-filter-tabs">
+        <button class="paper-filter-btn active" data-filter="all">All Questions (100)</button>
+        <button class="paper-filter-btn" data-filter="correct">✓ Correct (<span
+            id="filter-cnt-correct">0</span>)</button>
+        <button class="paper-filter-btn" data-filter="wrong">✗ Incorrect (<span id="filter-cnt-wrong">0</span>)</button>
+        <button class="paper-filter-btn" data-filter="skipped">⚪ Unattempted (<span
+            id="filter-cnt-skipped">0</span>)</button>
+      </div>
+
+      <!-- Complete 100 Questions List with Student Answers -->
+      <div class="detailed-questions-list" id="detailed-questions-container">
+        <!-- Dynamically rendered review cards -->
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cbt btn-cbt-gray" id="btn-print-paper-modal">🖨️ Print Detailed Sheet</button>
+        <button class="btn-cbt btn-cbt-primary" id="btn-dismiss-detailed-paper">Close</button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL: TEACHER ADMIN AUTHENTICATION
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-admin-auth">
+    <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3>Teacher / Admin Login</h3>
+        <button class="modal-close-btn" id="btn-close-auth-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 16px;">
+          Enter Admin Security Passcode to view all student records, selected options, and performance data.
+        </p>
+        <div class="form-group">
+          <label for="admin-pin-input">Teacher / Admin Security Passcode</label>
+          <input type="password" id="admin-pin-input" placeholder="Enter Security Passcode"
+            autocomplete="current-password">
+        </div>
+        <p id="admin-auth-err"
+          style="color: #ef4444; font-size: 0.82rem; display: none; margin-top: -8px; margin-bottom: 10px;">
+          Incorrect passcode. Please try again.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cbt btn-cbt-gray" id="btn-cancel-auth">Cancel</button>
+        <button class="btn-cbt btn-cbt-primary" id="btn-submit-auth">Unlock Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       MODAL: CLOUD SYNC & GOOGLE SHEETS WEBHOOK SETTINGS
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-cloud-config">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>☁️ Cloud & Google Sheets Live Sync</h3>
+        <button class="modal-close-btn" id="btn-close-cloud-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: #475569; font-size: 0.9rem; margin-bottom: 14px;">
+          Whenever a student submits their test from anywhere, their entire test response (Name, Roll, Marks, and all
+          100 chosen options) can be automatically sent to your <strong>Google Sheet</strong> or Webhook in real time!
+        </p>
+
+        <div class="form-group">
+          <label for="cloud-webhook-url">Google Apps Script Webhook URL</label>
+          <input type="url" id="cloud-webhook-url" placeholder="https://script.google.com/macros/s/..."
+            style="font-family: monospace; font-size: 0.85rem;">
+        </div>
+
+        <div
+          style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 6px; font-size: 0.82rem; color: #1e40af;">
+          💡 <strong>How to set up:</strong> We have provided a ready-made script in
+          <code>google_sheets_integration.js</code>. Paste it into Google Sheets Script Editor and copy the deployment
+          web app URL here.
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cbt btn-cbt-gray" id="btn-test-cloud-webhook">Test Webhook</button>
+        <button class="btn-cbt btn-cbt-primary" id="btn-save-cloud-config">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: DAILY ATTEMPT LIMIT REACHED (SECURITY ENFORCEMENT)
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-daily-limit">
+    <div class="modal-card" style="max-width: 520px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 10px;">🚫</div>
+      <h3 style="color: #dc2626; font-size: 1.35rem; margin-bottom: 8px;">Daily Attempt Limit Reached / दैनिक परीक्षा
+        सीमा समाप्त</h3>
+      <p style="color: #475569; font-size: 0.95rem; line-height: 1.5; margin-bottom: 16px;">
+        सुरक्षा एवं निष्पक्ष मूल्यांकन के लिए, एक परीक्षार्थी को <strong>एक दिन में केवल 2 परीक्षाएं</strong> देने की
+        अनुमति है। आपने आज के दोनों प्रयास (2/2) पूरे कर लिए हैं।
+      </p>
+      <div id="daily-limit-attempts-list"
+        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 18px; text-align: left; font-size: 0.88rem;">
+        <!-- Populated dynamically with today's attempts -->
+      </div>
+      <div
+        style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 0.88rem; color: #1e40af;">
+        📞 यदि कोई तकनीकी खराबी हुई थी या विशेष अनुमति चाहिए, तो कृपया अपने शिक्षक <strong>दीपक मौर्य (मोबाइल:
+          8960627330)</strong> से संपर्क करके अपनी दैनिक सीमा रीसेट करवाएं।
+      </div>
+      <div class="modal-actions" style="justify-content: center;">
+        <button class="btn-cbt btn-cbt-primary" id="btn-close-daily-limit-modal"
+          style="min-width: 160px; justify-content: center;">ठीक है, समझ गया</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: QUESTION PAPER PREVIEW (100 MCQS)
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-paper-preview">
+    <div class="modal-card" style="max-width: 800px; max-height: 88vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3 id="paper-preview-title">Question Paper Preview (100 MCQs)</h3>
+        <button class="modal-close-btn" id="btn-close-paper-preview">&times;</button>
+      </div>
+      <div class="modal-body" id="paper-preview-body" style="overflow-y: auto; flex: 1; padding: 16px;">
+        <!-- Dynamically rendered 100 questions preview -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cbt btn-cbt-gray" id="btn-dismiss-paper-preview">Close Preview</button>
+        <button class="btn-cbt btn-cbt-primary" id="btn-activate-from-preview">⚡ Activate This Paper for Today</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: EDIT / CUSTOMIZE EXAM PATTERN (ADMIN FEATURE)
+       ========================================================================= -->
+  <div class="modal-overlay" id="modal-edit-pattern">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="edit-pattern-title">Edit Exam Configuration</h3>
+        <button class="modal-close-btn" id="btn-close-edit-pattern">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-pattern">
+          <input type="hidden" id="edit-pattern-exam-id">
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="edit-pattern-questions">Total Questions</label>
+              <input type="number" id="edit-pattern-questions" min="10" max="300" required class="form-input">
+            </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="edit-pattern-marks">Total Marks</label>
+              <input type="number" id="edit-pattern-marks" min="10" max="1000" required class="form-input">
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="edit-pattern-duration">Duration (Minutes)</label>
+              <input type="number" id="edit-pattern-duration" min="10" max="300" required class="form-input">
+            </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="edit-pattern-correct">Marks per Correct</label>
+              <input type="number" step="0.01" id="edit-pattern-correct" required class="form-input">
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="edit-pattern-negative">Negative Marks (per wrong)</label>
+              <input type="number" step="0.01" id="edit-pattern-negative" required class="form-input">
+            </div>
+            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="edit-pattern-timing-mode">Timing Mode</label>
+              <select id="edit-pattern-timing-mode" class="form-select">
+                <option value="composite">Composite (Overall Exam Time)</option>
+                <option value="sectional">Sectional (Section-wise Timed & Locked)</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-actions"
+            style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" class="btn-cbt btn-cbt-gray" id="btn-reset-pattern-default"
+              style="color: #dc2626;">Reset to Official Default</button>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-cbt btn-cbt-gray" id="btn-cancel-edit-pattern">Cancel</button>
+              <button type="submit" class="btn-cbt btn-cbt-primary" id="btn-save-pattern">Save Changes</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       STUDENT ACCOUNT MODALS
+       ========================================================================= -->
+
+  <!-- 1. REGISTRATION SUCCESS MODAL -->
+  <div class="modal-overlay" id="modal-student-reg-success">
+    <div class="modal-card" style="max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 8px;">🎉</div>
+      <h3 style="color: #166534; font-size: 1.35rem; margin-bottom: 6px;">Registration Successful!</h3>
+      <p style="color: #475569; font-size: 0.9rem; margin-bottom: 18px;">
+        आपका स्थायी छात्र खाता सफलतापूर्वक बन चुका है। भविष्य में इसी खाते से सभी टेस्ट दें।
+      </p>
+
+      <div class="reg-success-id-box">
+        <span class="reg-id-label">YOUR PERMANENT STUDENT ID:</span>
+        <div class="reg-id-val-row">
+          <strong id="reg-success-display-id" class="reg-success-id-text">GMH20260001</strong>
+          <button type="button" class="btn-copy-id" id="btn-copy-success-id" title="Copy Student ID">
+            <span>📋 Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="reg-success-notice">
+        📌 <strong>महत्वपूर्ण सूचना:</strong> कृपया अपना <strong>Student ID</strong> सुरक्षित नोट कर लें। अगली बार किसी
+        भी फोन या लैपटॉप पर टेस्ट देने के लिए आपको सिर्फ Student ID और पासवर्ड की आवश्यकता होगी।
+      </div>
+
+      <div class="modal-actions" style="margin-top: 20px; justify-content: center;">
+        <button type="button" class="btn-cbt btn-cbt-primary" id="btn-success-goto-dash"
+          style="width: 100%; padding: 12px 20px; font-size: 1rem;">
+          <span>📊 Open My Student Dashboard / डैशबोर्ड खोलें &rarr;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. FORGOT PASSWORD MODAL -->
+  <div class="modal-overlay" id="modal-student-forgot-pass">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>🔑 Password Recovery / पासवर्ड रीसेट</h3>
+        <button class="modal-close-btn" id="btn-close-forgot-pass">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; color: #475569; margin-bottom: 16px;">
+          अपना पंजीकृत Student ID या मोबाइल नंबर दर्ज करें और पहचान सत्यापन के बाद नया पासवर्ड बनाएं।
+        </p>
+        <form id="form-forgot-pass">
+          <div class="form-group">
+            <label for="forgot-student-id">Student ID or Registered Mobile <span class="req-star">*</span></label>
+            <input type="text" id="forgot-student-id" placeholder="e.g. GMH20260001 or 8960627330" required
+              class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="forgot-verify-code">Verification (Registered 10-Digit Mobile or Roll No) <span
+                class="req-star">*</span></label>
+            <input type="text" id="forgot-verify-code" placeholder="Enter your registered mobile or roll" required
+              class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="forgot-new-pass">New Password / नया पासवर्ड <span class="req-star">*</span></label>
+            <input type="password" id="forgot-new-pass" placeholder="At least 6 characters" required class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="forgot-conf-pass">Confirm New Password <span class="req-star">*</span></label>
+            <input type="password" id="forgot-conf-pass" placeholder="Re-enter new password" required
+              class="form-input">
+          </div>
+          <div class="modal-actions" style="margin-top: 16px;">
+            <button type="button" class="btn-cbt btn-cbt-gray" id="btn-cancel-forgot-pass">Cancel</button>
+            <button type="submit" class="btn-cbt btn-cbt-primary"><span>🔒 Reset Password</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CHANGE PHOTO MODAL -->
+  <div class="modal-overlay" id="modal-change-student-photo">
+    <div class="modal-card" style="max-width: 480px; text-align: center;">
+      <div class="modal-header">
+        <h3>📷 Update Profile Photo / फोटो बदलें</h3>
+        <button class="modal-close-btn" id="btn-close-change-photo">&times;</button>
+      </div>
+      <div class="modal-body" style="padding-top: 16px;">
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 14px;">
+          Max size: <strong>5 MB</strong>. Allowed: JPG, PNG, WEBP.
+        </p>
+        <div class="photo-preview-box large" id="modal-photo-preview-box" style="margin: 0 auto 16px;">
+          <img id="modal-photo-preview-img" src="assets/deepak_mock_test_logo.jpg" alt="Preview"
+            style="width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 3px solid #3b82f6;">
+        </div>
+        <input type="file" id="modal-file-change-photo" accept="image/jpeg,image/jpg,image/png,image/webp"
+          style="display: none;">
+        <button type="button" class="btn-choose-photo" id="btn-browse-change-photo" style="display: inline-block;">
+          <span>📷 Choose New Image</span>
+        </button>
+        <div style="font-size: 0.8rem; color: #64748b; margin-top: 8px;" id="modal-photo-size-text">No file selected
+        </div>
+        <div class="modal-actions" style="margin-top: 20px;">
+          <button type="button" class="btn-cbt btn-cbt-gray" id="btn-cancel-change-photo">Cancel</button>
+          <button type="button" class="btn-cbt btn-cbt-primary" id="btn-save-new-photo">
+            <span>💾 Save Photo</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. CHANGE PASSWORD MODAL -->
+  <div class="modal-overlay" id="modal-change-student-pass">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3>🔒 Change Password / पासवर्ड बदलें</h3>
+        <button class="modal-close-btn" id="btn-close-change-pass">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-change-student-pass">
+          <div class="form-group">
+            <label for="change-old-pass">Current Password / वर्तमान पासवर्ड <span class="req-star">*</span></label>
+            <input type="password" id="change-old-pass" required class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="change-new-pass">New Password / नया पासवर्ड (Min 6 chars) <span
+                class="req-star">*</span></label>
+            <input type="password" id="change-new-pass" required class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="change-conf-pass">Confirm New Password <span class="req-star">*</span></label>
+            <input type="password" id="change-conf-pass" required class="form-input">
+          </div>
+          <div class="modal-actions" style="margin-top: 16px;">
+            <button type="button" class="btn-cbt btn-cbt-gray" id="btn-cancel-change-pass">Cancel</button>
+            <button type="submit" class="btn-cbt btn-cbt-primary"><span>Update Password</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. ADMIN STUDENT PASSWORD RESET MODAL -->
+  <div class="modal-overlay" id="modal-admin-student-reset-pass">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3>🔑 Admin: Reset Student Password</h3>
+        <button class="modal-close-btn" id="btn-close-admin-reset-pass">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; color: #475569; margin-bottom: 14px;">
+          Set a temporary password for Student: <strong id="admin-reset-target-name">Student</strong> (<span
+            id="admin-reset-target-id">GMH20260001</span>)
+        </p>
+        <form id="form-admin-student-reset-pass">
+          <input type="hidden" id="admin-reset-student-id">
+          <div class="form-group">
+            <label for="admin-reset-new-pass">New Temporary Password <span class="req-star">*</span></label>
+            <input type="text" id="admin-reset-new-pass" value="Student@2026" required class="form-input">
+          </div>
+          <div class="modal-actions" style="margin-top: 16px;">
+            <button type="button" class="btn-cbt btn-cbt-gray" id="btn-cancel-admin-reset-pass">Cancel</button>
+            <button type="submit" class="btn-cbt btn-cbt-primary"><span>Set Password</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. INNOVATION SUPPORT & UPI DONATION MODAL -->
+  <div class="modal-overlay" id="modal-support-innovation">
+    <div class="modal-card"
+      style="max-width: 420px; text-align: center; border: 2px solid #f59e0b; box-shadow: 0 0 35px rgba(245, 158, 11, 0.35);">
+      <div class="modal-header"
+        style="justify-content: space-between; border-bottom: 2px solid #f59e0b; padding: 12px 18px;">
+        <h3
+          style="margin: 0; font-size: 1.12rem; color: #ffffff; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+          <span>🚀</span>
+          <span>Support Next Innovation</span>
+        </h3>
+        <button class="modal-close-btn" id="btn-close-support-modal"
+          style="font-size: 1.6rem; cursor: pointer; background: none; border: none; color: #ffffff;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 12px 18px 16px 18px;">
+        <div
+          style="background: #fff; padding: 6px; border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); display: inline-block; margin-bottom: 6px; border: 2px solid #e2e8f0;">
+          <img src="assets/deepak_upi_qr.jpg" alt="Deepak Maurya Paytm UPI QR"
+            style="width: 155px; height: auto; border-radius: 8px; display: block; margin: 0 auto;">
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 2px;">
+          <strong style="font-size: 1.02rem; color: #0f172a;">Deepak Maurya</strong>
+          <span
+            style="background: #0284c7; color: #fff; border-radius: 50%; width: 17px; height: 17px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem;">✓</span>
+        </div>
+        <div style="font-size: 0.72rem; color: #64748b; margin-bottom: 6px; font-weight: 500;">
+          GovtExamHub Creator & Developer
+        </div>
+
+        <p style="font-size: 0.82rem; color: #475569; margin: 0 0 10px 0; line-height: 1.4;">
+          आपका छोटा सा सहयोग भी हमारे अगले <strong>Innovations, नए परीक्षा मॉड्यूल्स</strong> और <strong>फ्री सर्वर
+            मेंटेनेंस</strong> को निरंतर जारी रखने में अमूल्य योगदान देगा। 🙏
+        </p>
+
+        <div
+          style="background: #f1f5f9; border: 1.5px dashed #0284c7; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="text-align: left;">
+            <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">UPI ID</div>
+            <strong id="modal-upi-id-val"
+              style="font-size: 0.95rem; color: #0f172a; font-family: monospace;">8960627330@ptaxis</strong>
+          </div>
+          <button type="button" class="btn-cbt btn-cbt-primary" id="btn-copy-upi-modal"
+            style="padding: 6px 14px; font-size: 0.82rem;">
+            <span id="modal-copy-label">📋 Copy UPI</span>
+          </button>
+        </div>
+
+        <div
+          style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.74rem; color: #64748b;">
+          <span>Scan with any UPI App:</span>
+          <strong style="color: #00baf2;">Paytm</strong> •
+          <strong style="color: #5f259f;">PhonePe</strong> •
+          <strong style="color: #ea4335;">Google Pay</strong> •
+          <strong style="color: #00796b;">BHIM</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Data & Application Logic -->
+  <script src="exam_patterns_system.js"></script>
+  <script src="questions_ssc.js"></script>
+  <script src="questions_banking.js"></script>
+  <script src="questions_railway.js"></script>
+  <script src="questions_upsssc.js"></script>
+  <script src="questions_police.js"></script>
+  <script src="questions_defence.js"></script>
+  <script src="questions_teaching.js"></script>
+  <script src="questions_neet.js"></script>
+  <script src="questions_olevel.js"></script>
+  <script src="questions_ccc.js"></script>
+  <script src="questions_state.js"></script>
+  <script src="questions_other.js"></script>
+  <script src="questions.js"></script>
+  <script>
+    window.GOVTEXAMHUB_API_URL = "https://govtexam.onrender.com/api";
+  </script>
+  <script src="daily_slot_service.js"></script>
+  <script src="student_account_service.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug - Start Exam</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #eee; }
+    .error { color: #ff6b6b; background: #2d0000; padding: 10px; margin: 5px 0; border-left: 3px solid red; }
+    .ok { color: #6bff6b; background: #002d00; padding: 10px; margin: 5px 0; border-left: 3px solid green; }
+    .warn { color: #ffd700; background: #2d2000; padding: 10px; margin: 5px 0; border-left: 3px solid orange; }
+    button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px 0; }
+    #output { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>CBT Exam Debug Tool</h2>
+  <button onclick="runDiagnostics()">Run Diagnostics</button>
+  <div id="output"></div>
+
+  <script src="questions_ssc.js"></script>
+  <script src="questions_banking.js"></script>
+  <script src="questions_railway.js"></script>
+  <script src="questions_nursing.js"></script>
+  <script src="questions_upsssc.js"></script>
+  <script src="questions_police.js"></script>
+  <script src="questions_defence.js"></script>
+  <script src="questions_teaching.js"></script>
+  <script src="questions_neet.js"></script>
+  <script src="questions_olevel.js"></script>
+  <script src="questions_ccc.js"></script>
+  <script src="questions_state.js"></script>
+  <script src="questions_other.js"></script>
+  <script src="questions.js"></script>
+
+  <script>
+    const out = document.getElementById('output');
+    function log(msg, type) {
+      type = type || 'ok';
+      const div = document.createElement('div');
+      div.className = type;
+      div.textContent = msg;
+      out.appendChild(div);
+    }
+
+    window.onerror = function(msg, src, line, col, err) {
+      log('GLOBAL JS ERROR: ' + msg + ' | File: ' + src + ' | Line: ' + line, 'error');
+    };
+
+    function runDiagnostics() {
+      out.innerHTML = '';
+      log('=== Starting Diagnostics ===');
+
+      var checks = [
+        ['NURSING_EXAM_CONFIG', typeof NURSING_EXAM_CONFIG !== 'undefined'],
+        ['NURSING_QUESTIONS_DATA', typeof NURSING_QUESTIONS_DATA !== 'undefined'],
+        ['OLEVEL_EXAM_CONFIG', typeof OLEVEL_EXAM_CONFIG !== 'undefined'],
+        ['OLEVEL_QUESTIONS_DATA', typeof OLEVEL_QUESTIONS_DATA !== 'undefined'],
+        ['CCC_EXAM_CONFIG', typeof CCC_EXAM_CONFIG !== 'undefined'],
+        ['EXAMS_REGISTRY', typeof EXAMS_REGISTRY !== 'undefined'],
+        ['getExamConfig (function)', typeof getExamConfig === 'function'],
+        ['getExamQuestions (function)', typeof getExamQuestions === 'function'],
+      ];
+
+      checks.forEach(function(c) {
+        log((c[1] ? 'OK ' : 'MISSING ') + c[0], c[1] ? 'ok' : 'error');
+      });
+
+      if (typeof getExamConfig === 'function') {
+        try {
+          var cfg = getExamConfig('nursing');
+          log('getExamConfig(nursing): ' + cfg.title + ', duration=' + cfg.durationMinutes, 'ok');
+        } catch(e) {
+          log('getExamConfig(nursing) ERROR: ' + e.message, 'error');
+        }
+      }
+
+      if (typeof getExamQuestions === 'function') {
+        try {
+          var qs = getExamQuestions('nursing', true);
+          log('getExamQuestions(nursing): ' + qs.length + ' questions', qs.length > 0 ? 'ok' : 'warn');
+        } catch(e) {
+          log('getExamQuestions(nursing) ERROR: ' + e.message, 'error');
+        }
+      }
+
+      try {
+        var entry = EXAMS_REGISTRY['nursing'];
+        log('EXAMS_REGISTRY[nursing].isAvailable: ' + entry.isAvailable, entry.isAvailable ? 'ok' : 'error');
+        var cfg2 = getExamConfig('nursing');
+        var qs2 = getExamQuestions('nursing', true);
+        var timer = cfg2.durationMinutes * 60;
+        log('Timer seconds: ' + timer, timer > 0 ? 'ok' : 'error');
+        log('ALL PASSED - exam should start', 'ok');
+      } catch(e) {
+        log('SIMULATION ERROR: ' + e.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

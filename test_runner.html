@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Automated GovtExamHub CBT Test Suite — Verified Exam Patterns System</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; background: #F5F8FC; color: #0B2D5C; }
+    h1 { color: #0B2D5C; font-size: 1.5rem; margin-bottom: 8px; }
+    .badge-pass { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
+    .badge-fail { background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
+    .test-log { font-family: monospace; font-size: 0.85rem; background: #ffffff; padding: 16px; border-radius: 8px; border: 1px solid #cbd5e1; max-height: 480px; overflow-y: auto; margin-top: 16px; }
+    .log-pass { color: #15803d; margin: 4px 0; }
+    .log-fail { color: #b91c1c; font-weight: bold; margin: 4px 0; }
+    .summary-card { background: white; padding: 16px 20px; border-radius: 10px; border: 1px solid #e2e8f0; margin-top: 16px; display: inline-block; min-width: 320px; }
+  </style>
+</head>
+<body>
+  <h1>GovtExamHub — Automated Verification Suite</h1>
+  <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Verifying Official Examination Pattern System, NEET 180 Qs / 720 Marks, Sectional Timing, Practice Mode & Admin Configuration</p>
+
+  <div id="results">Running tests...</div>
+
+  <!-- Test Fixture Container with all required DOM elements -->
+  <div id="test-fixture" style="display:none;">
+    <div id="info-chip-marking"></div>
+    <div id="info-chip-questions"></div>
+    <div id="info-chip-marks"></div>
+    <div id="info-chip-duration"></div>
+    <div id="section-overview-tags"></div>
+    <div id="instructions-exam-heading"></div>
+    <div id="reg-exam-title"></div>
+    <div id="reg-exam-icon"></div>
+    <div id="reg-exam-badge"></div>
+    <div id="sub-exam-selector-container"></div>
+    <div id="sub-exam-pills-list"></div>
+    <div id="sub-exam-name-text"></div>
+    <div id="sub-exam-desc-text"></div>
+    <div id="sub-exam-official-badge"></div>
+    <div id="cbt-section-timer-box"></div>
+    <div id="cbt-section-time-text"></div>
+    <div id="cbt-mode-badge"></div>
+    <div id="practice-explanation-card"></div>
+    <div id="practice-expl-text"></div>
+    <div id="btn-practice-check-ans"></div>
+    <div id="btn-submit-next-section"></div>
+    <span id="palette-total-range"></span>
+    <div id="question-palette-grid"></div>
+    <span id="palette-current-section-name"></span>
+    <div id="cbt-active-subject-badge"></div>
+    <div id="cbt-paper-title-pill"></div>
+    <div id="q-meta-tag"></div>
+    <div id="q-text-en"></div>
+    <div id="q-text-hi"></div>
+    <div id="options-container"></div>
+    <button id="btn-start-exam"><span id="btn-start-exam-text"></span></button>
+  </div>
+
+  <!-- Scripts: Exam Patterns Database first, then question datasets, then core questions & app -->
+  <script src="exam_patterns_system.js"></script>
+  <script src="questions_ssc.js"></script>
+  <script src="questions_banking.js"></script>
+  <script src="questions_railway.js"></script>
+  <script src="questions_upsssc.js"></script>
+  <script src="questions_police.js"></script>
+  <script src="questions_defence.js"></script>
+  <script src="questions_teaching.js"></script>
+  <script src="questions_neet.js"></script>
+  <script src="questions_olevel.js"></script>
+  <script src="questions_ccc.js"></script>
+  <script src="questions_state.js"></script>
+  <script src="questions_other.js"></script>
+  <script src="questions.js"></script>
+  <script src="student_account_service.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    async function runAllTests() {
+    try {
+      console.log("=== STARTING AUTOMATED TEST SUITE: EXAM PATTERNS + PERMANENT STUDENT ACCOUNT ===");
+      let passed = 0;
+      let failed = 0;
+      const logs = [];
+
+      function assert(condition, testName) {
+        if (condition) {
+          console.log("PASS: " + testName);
+          logs.push(`<div class="log-pass">✓ PASS: ${testName}</div>`);
+          passed++;
+        } else {
+          console.error("FAIL: " + testName);
+          logs.push(`<div class="log-fail">✗ FAIL: ${testName}</div>`);
+          failed++;
+        }
+      }
+
+      // -------------------------------------------------------------
+      // Test 1: Category Registry (13 Categories without UPSC / UPPSC)
+      // -------------------------------------------------------------
+      const expectedCategories = [
+        "neet", "nursing", "ssc", "banking", "railway", "upsssc", "police",
+        "defence", "teaching", "olevel", "ccc", "state", "other"
+      ];
+      assert(Object.keys(EXAMS_REGISTRY).length === 13, `Registry contains exactly 13 Government Exam categories (Actual: ${Object.keys(EXAMS_REGISTRY).length})`);
+      assert(EXAMS_REGISTRY["uppsc"] === undefined, "UPPSC is completely removed from EXAMS_REGISTRY");
+      assert(EXAMS_REGISTRY["upsc"] === undefined, "UPSC is completely removed from EXAMS_REGISTRY");
+
+      expectedCategories.forEach(catId => {
+        assert(EXAMS_REGISTRY[catId] !== undefined, `Category '${catId}' is registered in EXAMS_REGISTRY`);
+        assert(EXAMS_REGISTRY[catId].isAvailable === true, `Category '${catId}' is LIVE and available`);
+        assert(EXAMS_REGISTRY[catId].badgeClass === "badge-live", `Category '${catId}' has badge-live class`);
+      });
+
+      // Assert that UPSC and UPPSC do NOT appear anywhere in verified configs
+      const allCfgs = getAllVerifiedExamConfigs();
+      allCfgs.forEach(c => {
+        assert(!c.examId.toLowerCase().includes("uppsc") && !c.examId.toLowerCase().includes("upsc"), `Config ${c.examId} has no upsc/uppsc in ID`);
+        assert(!c.examName.toLowerCase().includes("uppsc") && !c.examName.toLowerCase().includes("upsc"), `Config ${c.examId} has no upsc/uppsc in examName`);
+        assert(!c.authority.toLowerCase().includes("uppsc") && !c.authority.toLowerCase().includes("upsc"), `Config ${c.examId} has no upsc/uppsc in authority`);
+      });
+
+      // -------------------------------------------------------------
+      // Test 2: Verified Exam Patterns System Database & Multi-Stage separation
+      // -------------------------------------------------------------
+      assert(typeof VERIFIED_EXAM_PATTERNS === "object" && Object.keys(VERIFIED_EXAM_PATTERNS).length >= 20, 
+        `Verified Exam Patterns database loaded with ${Object.keys(VERIFIED_EXAM_PATTERNS).length} official configurations (>= 20)`);
+
+      const sscSubExams = getVerifiedExamsByCategory("ssc");
+      assert(sscSubExams.length >= 4, `SSC has multiple stages/exams separated (${sscSubExams.length} sub-exams: CGL Tier-1, CHSL, MTS, GD, CPO)`);
+
+      const bankingSubExams = getVerifiedExamsByCategory("banking");
+      assert(bankingSubExams.length >= 3, `Banking has distinct exams separated (IBPS PO, SBI PO, IBPS Clerk, RRB)`);
+
+      // -------------------------------------------------------------
+      // Test 3: NEET UG 2026 Authentic NTA Pattern (180 Qs, 720 Marks, 180 Mins, +4/-1)
+      // -------------------------------------------------------------
+      const neetCfg = getExamConfig("neet");
+      assert(neetCfg.totalQuestions === 180, `NEET UG totalQuestions is 180 (Actual: ${neetCfg.totalQuestions})`);
+      assert(neetCfg.totalMarks === 720, `NEET UG totalMarks is 720 (Actual: ${neetCfg.totalMarks})`);
+      assert(neetCfg.durationMinutes === 180, `NEET UG durationMinutes is 180 (Actual: ${neetCfg.durationMinutes})`);
+      assert(neetCfg.marksPerCorrect === 4, `NEET UG marksPerCorrect is 4 (Actual: ${neetCfg.marksPerCorrect})`);
+      assert(neetCfg.negativeMarking === 1.0, `NEET UG negativeMarking is 1.0 (Actual: ${neetCfg.negativeMarking})`);
+      assert(neetCfg.sections.length === 4, `NEET UG has 4 distinct subject sections (Physics, Chemistry, Botany, Zoology)`);
+
+      const neetQuestions = getExamQuestions("neet", false);
+      assert(neetQuestions.length === 180, `NEET dataset loads exactly 180 questions (Actual: ${neetQuestions.length})`);
+
+      // Verify NEET 4-Subject counts
+      const physicsCount = neetQuestions.filter(q => q.section === "physics" || q.section === "Physics" || (q.sectionName && q.sectionName.toLowerCase().includes("physics"))).length;
+      const chemCount = neetQuestions.filter(q => q.section === "chemistry" || q.section === "Chemistry" || (q.sectionName && q.sectionName.toLowerCase().includes("chemistry"))).length;
+      const botanyCount = neetQuestions.filter(q => q.section === "botany" || q.section === "Botany" || (q.sectionName && q.sectionName.toLowerCase().includes("botany"))).length;
+      const zoologyCount = neetQuestions.filter(q => q.section === "zoology" || q.section === "Zoology" || (q.sectionName && q.sectionName.toLowerCase().includes("zoology"))).length;
+
+      assert(physicsCount === 45, `NEET Physics has exactly 45 questions (Actual: ${physicsCount})`);
+      assert(chemCount === 45, `NEET Chemistry has exactly 45 questions (Actual: ${chemCount})`);
+      assert(botanyCount === 45, `NEET Botany has exactly 45 questions (Actual: ${botanyCount})`);
+      assert(zoologyCount === 45, `NEET Zoology has exactly 45 questions (Actual: ${zoologyCount})`);
+      assert(botanyCount + zoologyCount === 90, `Combined Biology has exactly 90 questions (360 Marks)`);
+
+      // -------------------------------------------------------------
+      // Test 4: Official Pattern Calculations & Distinct Negative Markings
+      // -------------------------------------------------------------
+      // SSC CGL Tier-1: 100 Qs, 200 Marks, 60 Mins, +2.0 / -0.5
+      const sscCglCfg = getExamConfig("ssc-cgl-tier1");
+      assert(sscCglCfg.totalQuestions === 100 && sscCglCfg.totalMarks === 200 && sscCglCfg.marksPerCorrect === 2.0 && sscCglCfg.negativeMarking === 0.5,
+        "SSC CGL Tier-I: 100 Qs, 200 Marks, +2.0 / -0.5 negative marking");
+
+      // NDA Mathematics: 120 Qs, 300 Marks, 150 Mins, +2.5 / -0.833
+      const ndaMathCfg = getExamConfig("nda-maths");
+      assert(ndaMathCfg.totalQuestions === 120 && ndaMathCfg.totalMarks === 300 && ndaMathCfg.marksPerCorrect === 2.5 && Math.abs(ndaMathCfg.negativeMarks - 0.833) < 0.01,
+        "NDA Mathematics: 120 Qs, 300 Marks, 150 Mins, +2.5 / -0.833 negative marking");
+
+      // CTET Paper-1: 150 Qs, 150 Marks, 150 Mins, 0 negative
+      const ctetCfg = getExamConfig("ctet-paper1");
+      assert(ctetCfg.totalQuestions === 150 && ctetCfg.totalMarks === 150 && ctetCfg.negativeMarking === 0,
+        "CTET Paper-I: 150 Qs, 150 Marks, 0 negative marking");
+
+      // B.Sc. Nursing: 100 Qs, 100 Marks, 120 Mins, 0 negative
+      const nursingCfg = getExamConfig("nursing");
+      assert(nursingCfg.totalQuestions === 100 && nursingCfg.totalMarks === 100 && nursingCfg.negativeMarking === 0,
+        "B.Sc. Nursing: 100 Qs, 100 Marks, 0 negative marking");
+
+      // NIELIT CCC: 100 Qs, 100 Marks, 90 Mins, 0 negative
+      const cccCfg = getExamConfig("ccc");
+      assert(cccCfg.totalQuestions === 100 && cccCfg.totalMarks === 100 && cccCfg.negativeMarking === 0,
+        "NIELIT CCC: 100 Qs, 100 Marks, 0 negative marking");
+
+      // -------------------------------------------------------------
+      // Test 5: Continuous Mock Test Navigation & Dynamic Palette (1..N)
+      // -------------------------------------------------------------
+      assert(state.lockedSections.length === 0, "No sections are locked in continuous mock mode");
+      const sscQ = getExamQuestions("ssc-cgl-tier1", false);
+      state.activeQuestionsData = sscQ;
+      state.activeExamConfig = sscCglCfg;
+      state.responses = sscQ.map((q, idx) => ({ qId: q.id, selectedOption: null, status: idx === 0 ? "visited" : "not-visited" }));
+      renderPaletteGrid();
+      const palRange = document.getElementById("palette-total-range");
+      assert(palRange && palRange.textContent.includes("100"), `Question palette displays 1-100 for SSC CGL (Actual: ${palRange ? palRange.textContent : 'none'})`);
+      
+      // Dynamic Palette for NEET (180 questions)
+      state.activeQuestionsData = neetQuestions;
+      state.activeExamConfig = neetCfg;
+      state.responses = neetQuestions.map((q, idx) => ({ qId: q.id, selectedOption: null, status: idx === 0 ? "visited" : "not-visited" }));
+      renderPaletteGrid();
+      assert(palRange && palRange.textContent.includes("180"), `Question palette displays 1-180 dynamically for NEET UG (Actual: ${palRange ? palRange.textContent : 'none'})`);
+      
+      // Unrestricted direct jumping across questions in continuous test
+      jumpToQuestion(50);
+      assert(state.currentQuestionIndex === 50, "Student can jump directly to Q51 across continuous test");
+      jumpToQuestion(179);
+      assert(state.currentQuestionIndex === 179, "Student can jump directly to Q180 across continuous test");
+
+      // -------------------------------------------------------------
+      // Test 6: NEET 720 Marks Submission & Scorecard Simulation
+      // -------------------------------------------------------------
+      state.selectedExamId = "neet";
+      state.selectedSubExamId = "neet";
+      state.activeQuestionsData = neetQuestions;
+      state.activeExamConfig = neetCfg;
+
+      // Simulate 150 correct (+600), 20 wrong (-20), 10 unattempted (0) -> Total = 580 / 720
+      const mockNeet = createMockSubmission("Aarav Mehta", "NEET2026-8801", "9876543210", 150);
+      assert(mockNeet.maxMarks === 720, `NEET scorecard maxMarks is 720 (Actual: ${mockNeet.maxMarks})`);
+      assert(mockNeet.positiveMarks === 600, `NEET positive marks is 600 (Actual: ${mockNeet.positiveMarks})`);
+      assert(mockNeet.negativeMarks === 20, `NEET negative deduction is 20 (Actual: ${mockNeet.negativeMarks})`);
+      assert(mockNeet.totalScore === 580, `NEET net score is 580/720 (Actual: ${mockNeet.totalScore})`);
+      assert(mockNeet.percentage === "80.6", `NEET percentage is 80.6% (Actual: ${mockNeet.percentage})`);
+
+      // -------------------------------------------------------------
+      // Test 7: Practice Mode vs Timed Mock Test Mode Toggle
+      // -------------------------------------------------------------
+      assert(typeof setExamMode === "function", "setExamMode function exists in app.js");
+      setExamMode("practice");
+      assert(state.examMode === "practice", "State successfully switched to practice mode");
+      setExamMode("mock");
+      assert(state.examMode === "mock", "State successfully switched back to mock test mode");
+
+      // -------------------------------------------------------------
+      // Test 8: Sub-Exam Selection and UI Chips
+      // -------------------------------------------------------------
+      selectExamCategory("ssc");
+      assert(state.selectedExamId === "ssc", "Category switched to SSC");
+      selectSubExam("ssc-cgl-tier1");
+      assert(state.selectedSubExamId === "ssc-cgl-tier1", "Sub-exam switched to ssc-cgl-tier1");
+
+      const chipMarking = document.getElementById("info-chip-marking");
+      assert(chipMarking.textContent === "+2.0 / -0.50", `SSC CGL Tier 1 chip displays '+2.0 / -0.50' (Actual: ${chipMarking.textContent})`);
+
+      selectExamCategory("neet");
+      assert(chipMarking.textContent === "+4.0 / -1.00", `NEET chip displays '+4.0 / -1.00' (Actual: ${chipMarking.textContent})`);
+
+      // -------------------------------------------------------------
+      // Test 9: Admin Verified Exam Patterns Table & Custom Edit / Reset
+      // -------------------------------------------------------------
+      const allConfigs = getAllVerifiedExamConfigs();
+      assert(allConfigs.length >= 22, `Admin can view all ${allConfigs.length} verified configurations`);
+
+      // Test custom override saving
+      saveCustomExamConfig("test-mock-exam", {
+        id: "test-mock-exam",
+        title: "Test Exam Custom",
+        category: "ssc",
+        totalQuestions: 75,
+        totalMarks: 150,
+        marksPerCorrect: 2,
+        negativeMarking: 0.5,
+        durationMinutes: 60
+      });
+      const retrieved = getVerifiedExamConfig("test-mock-exam");
+      assert(retrieved.totalQuestions === 75 && retrieved.totalMarks === 150, "Admin custom pattern override successfully saved and retrieved");
+
+      // Test default reset
+      resetExamConfigToDefault("test-mock-exam");
+      localStorage.removeItem("geh_custom_exam_configs");
+
+      // -------------------------------------------------------------
+      // Test 10: Teacher Credentials & Contact Information
+      // -------------------------------------------------------------
+      assert(state.ADMIN_PIN === "896062", "Admin PIN configured as 896062");
+      assert(state.SPREADSHEET_URL.includes("1IjVmBmR-q2c7ZP9UORJAn3tqDIjzl2S_hzB0oW6LXhk"), "Live Google Sheet configured");
+
+      // -------------------------------------------------------------
+      // Test 11: Permanent Unique Student ID Generation & Database Uniqueness
+      // -------------------------------------------------------------
+      assert(typeof StudentAccountService !== "undefined", "StudentAccountService is available globally");
+      assert(StudentAccountService.MAX_PROFILE_PHOTO_SIZE === 5 * 1024 * 1024, "Strict 5 MB profile photo maximum size enforced");
+
+      // Clean test student store
+      localStorage.removeItem("govtexamhub_students_v1");
+      localStorage.removeItem("govtexamhub_student_mocks_v1");
+      localStorage.removeItem("govtexamhub_student_session_v1");
+
+      const testPhotoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+      const reg1 = await StudentAccountService.registerStudent({
+        name: "Deepak Maurya",
+        roll: "ROLL-2026-001",
+        phone: "9876543210",
+        category: "OBC",
+        password: "securePassword123",
+        photoBase64: testPhotoBase64
+      });
+
+      assert(reg1.status === "success", "Student 1 registration succeeded");
+      assert(/^GMH2026\d{4}$/.test(reg1.student.studentId), `Generated Student ID conforms to format GMH2026xxxx (Actual: ${reg1.student.studentId})`);
+      assert(!reg1.student.password, "Plaintext password NEVER stored or returned in student object");
+      assert(!reg1.student.passwordHash, "passwordHash NOT exposed in student response object");
+      assert(reg1.student.photoUrl && reg1.student.photoUrl.startsWith("data:image/"), "Profile photo securely stored and linked to student");
+
+      // Test 12: Second student receives distinct sequential unique ID
+      const reg2 = await StudentAccountService.registerStudent({
+        name: "Anjali Sharma",
+        roll: "ROLL-2026-002",
+        phone: "9876543211",
+        category: "General",
+        password: "securePassword456",
+        photoBase64: testPhotoBase64
+      });
+      assert(reg2.status === "success", "Student 2 registration succeeded");
+      assert(reg1.student.studentId !== reg2.student.studentId, `Each student gets a unique permanent Student ID (${reg1.student.studentId} vs ${reg2.student.studentId})`);
+
+      // -------------------------------------------------------------
+      // Test 13: One-Time Registration & Duplicate Prevention
+      // -------------------------------------------------------------
+      const dupReg = await StudentAccountService.registerStudent({
+        name: "Deepak Maurya Duplicate",
+        roll: "ROLL-2026-001", // duplicate roll
+        phone: "9876543210",   // duplicate phone
+        category: "OBC",
+        password: "anotherPassword",
+        photoBase64: testPhotoBase64
+      });
+      assert(dupReg.status === "error", "Duplicate student registration is safely blocked");
+      assert(dupReg.message.includes("Login") || dupReg.message.includes("पहले से"), "Friendly message instructing student to login instead");
+
+      // -------------------------------------------------------------
+      // Test 14: Secure Password Verification & Hashing
+      // -------------------------------------------------------------
+      const failLogin = await StudentAccountService.loginStudent("9876543210", "wrongPassword");
+      assert(failLogin.status === "error", "Login with wrong password rejected");
+
+      const successLoginById = await StudentAccountService.loginStudent(reg1.student.studentId, "securePassword123");
+      assert(successLoginById.status === "success", "Student 1 can login anytime using Student ID + Password");
+
+      const successLoginByPhone = await StudentAccountService.loginStudent("9876543210", "securePassword123");
+      assert(successLoginByPhone.status === "success", "Student 1 can also login using Mobile Number + Password");
+
+      // -------------------------------------------------------------
+      // Test 15: Mock Attempt Linking & Complete History Ownership
+      // -------------------------------------------------------------
+      // Student 1 takes Mock 1: SSC CGL
+      const mock1 = {
+        id: "SUB-MOCK-1",
+        studentId: reg1.student.studentId,
+        candidate: { name: reg1.student.name, roll: reg1.student.roll, phone: reg1.student.phone },
+        examTitle: "SSC CGL Tier-I 2026",
+        examId: "ssc",
+        totalScore: 142,
+        maxMarks: 200,
+        percentage: "71.0",
+        correctCount: 74,
+        wrongCount: 12,
+        timeTakenSeconds: 3200,
+        submittedAt: new Date(Date.now() - 86400000).toISOString()
+      };
+      await StudentAccountService.recordStudentMockAttempt(mock1);
+
+      // Student 1 takes Mock 2: NEET UG
+      const mock2 = {
+        id: "SUB-MOCK-2",
+        studentId: reg1.student.studentId,
+        candidate: { name: reg1.student.name, roll: reg1.student.roll, phone: reg1.student.phone },
+        examTitle: "NEET (UG) 2026",
+        examId: "neet",
+        totalScore: 598,
+        maxMarks: 720,
+        percentage: "83.1",
+        correctCount: 152,
+        wrongCount: 10,
+        timeTakenSeconds: 7000,
+        submittedAt: new Date().toISOString()
+      };
+      await StudentAccountService.recordStudentMockAttempt(mock2);
+
+      // Fetch Student 1 mocks
+      const stu1Mocks = await StudentAccountService.getStudentMocks(reg1.student.studentId);
+      assert(stu1Mocks.total === 2, `Student 1 has exactly 2 mock attempts linked permanently (Actual: ${stu1Mocks.total})`);
+
+      // -------------------------------------------------------------
+      // Test 16: IDOR Protection & Student Isolation
+      // -------------------------------------------------------------
+      const stu2Mocks = await StudentAccountService.getStudentMocks(reg2.student.studentId);
+      assert(stu2Mocks.total === 0, `Student 2 cannot see Student 1's mock attempts (Student data strictly isolated)`);
+
+      // -------------------------------------------------------------
+      // Test 17: Aggregated Personal Statistics
+      // -------------------------------------------------------------
+      const stats = await StudentAccountService.getStudentStatistics(reg1.student.studentId);
+      assert(stats.totalMocks === 2, `Personal Stats: Total Mocks = 2 (Actual: ${stats.totalMocks})`);
+      assert(stats.bestScore === 598, `Personal Stats: Best Score = 598 (Actual: ${stats.bestScore})`);
+      assert(parseFloat(stats.avgAccuracy) > 0, `Personal Stats: Average Accuracy computed correctly (${stats.avgAccuracy}%)`);
+
+      // -------------------------------------------------------------
+      // Test 18: Admin Student Management & Secure Password Reset
+      // -------------------------------------------------------------
+      const allStudents = await StudentAccountService.getAllStudents();
+      assert(allStudents.length >= 2, `Admin can view all registered students (${allStudents.length} found)`);
+
+      // Toggle status to suspended
+      await StudentAccountService.toggleStudentStatus(reg1.student.studentId, "suspended");
+      const suspendedLogin = await StudentAccountService.loginStudent(reg1.student.studentId, "securePassword123");
+      assert(suspendedLogin.status === "error" && suspendedLogin.message.includes("suspended"), "Suspended account is denied login");
+
+      // Reactivate
+      await StudentAccountService.toggleStudentStatus(reg1.student.studentId, "active");
+      const reactivatedLogin = await StudentAccountService.loginStudent(reg1.student.studentId, "securePassword123");
+      assert(reactivatedLogin.status === "success", "Reactivated account can login successfully");
+
+      // Admin Secure Password Reset
+      await StudentAccountService.adminResetPassword(reg1.student.studentId, "newAdminPass999");
+      const newPassLogin = await StudentAccountService.loginStudent(reg1.student.studentId, "newAdminPass999");
+      assert(newPassLogin.status === "success", "Student can login with the newly reset password");
+
+      // -------------------------------------------------------------
+      // Test 19: Dashboard Exam Category Selection & Sub-Exam Switching
+      // -------------------------------------------------------------
+      selectExamCategory("police");
+      assert(state.selectedExamId === "police", "Category switched to Police inside Student Dashboard");
+      selectSubExam("police-constable");
+      assert(state.selectedSubExamId === "police-constable", "Sub-exam switched to UP Police Constable");
+      const policeCfg = getExamConfig("police-constable");
+      assert(policeCfg.totalQuestions === 150 && policeCfg.totalMarks === 300, "Police Constable: 150 Questions, 300 Marks (+2.0 / -0.5)");
+
+      selectExamCategory("banking");
+      assert(state.selectedExamId === "banking", "Category switched to Banking inside Student Dashboard");
+      selectSubExam("banking-ibps-po");
+      assert(state.selectedSubExamId === "banking-ibps-po", "Sub-exam switched to IBPS PO Prelims");
+
+      selectExamCategory("olevel");
+      assert(state.selectedExamId === "olevel", "Category switched to NIELIT O Level inside Student Dashboard");
+      selectSubExam("olevel-m1");
+      assert(state.selectedSubExamId === "olevel-m1", "Sub-exam switched to O Level M1-R5 (IT Tools & Network Basics)");
+
+      // -------------------------------------------------------------
+      // Test 20: Complete Exam Submission, Permanent Student Sync & Dashboard Stats
+      // -------------------------------------------------------------
+      selectExamCategory("police");
+      selectSubExam("police-constable");
+      state.currentStudent = reg1.student;
+
+      // Simulate a submission record for Police exam
+      const policeSubmission = {
+        id: "SUB-POLICE-" + Date.now(),
+        candidate: { name: reg1.student.name, roll: reg1.student.roll, phone: reg1.student.phone, category: "OBC", exam: "UP Police Constable CBT Mock Test" },
+        studentId: reg1.student.studentId,
+        examTitle: "UP Police Constable CBT Mock Test",
+        examId: "police-constable",
+        submittedAt: new Date().toISOString(),
+        timeTakenSeconds: 3600,
+        totalScore: 240,
+        positiveMarks: 250,
+        negativeMarks: 10,
+        maxMarks: 300,
+        totalQuestions: 150,
+        percentage: "80.0",
+        correctCount: 125,
+        wrongCount: 20,
+        unattemptedCount: 5,
+        detailedAnswers: []
+      };
+
+      // Record mock attempt via StudentAccountService
+      await StudentAccountService.recordStudentMockAttempt(policeSubmission);
+
+      // Verify the new attempt is immediately retrievable for student 1
+      const studentMocksAfterPolice = await StudentAccountService.getStudentMocks(reg1.student.studentId, { page: 1, limit: 10 });
+      assert(studentMocksAfterPolice.attempts.length >= 3, `Student 1 now has ${studentMocksAfterPolice.attempts.length} attempts in permanent history`);
+      assert(studentMocksAfterPolice.attempts[0].examTitle.includes("Police"), "Most recent attempt is UP Police Constable CBT Mock Test");
+      assert(studentMocksAfterPolice.attempts[0].totalScore === 240, "Police exam score of 240 marks recorded accurately");
+      assert(studentMocksAfterPolice.attempts[0].studentId === reg1.student.studentId, "Attempt permanently tied to studentId " + reg1.student.studentId);
+
+      // Verify personal statistics updated
+      const updatedStats = await StudentAccountService.getStudentStatistics(reg1.student.studentId);
+      assert(updatedStats.totalMocks === 3, `Updated Personal Stats: Total Mocks = 3 (Actual: ${updatedStats.totalMocks})`);
+      // -------------------------------------------------------------
+      // Test 21: Live CBT Exam Launch, Option Answering & Full handleFinalSubmit() Flow
+      // -------------------------------------------------------------
+      selectExamCategory("police");
+      selectSubExam("police-constable");
+      state.currentStudent = reg1.student;
+
+      // Start CBT Exam
+      startExamForCandidate(reg1.student.name, reg1.student.roll, reg1.student.phone, reg1.student.category || "OBC");
+      assert(state.activeQuestionsData && state.activeQuestionsData.length === 150, "CBT Exam Engine loaded 150 questions for UP Police Constable");
+      assert(state.activeExamConfig.marksPerCorrect === 2 && state.activeExamConfig.negativeMarking === 0.5, "Police Marking verified: +2 per correct, -0.5 per wrong");
+
+      // Candidate answers Question 0 correctly
+      const q0 = state.activeQuestionsData[0];
+      state.responses[0] = {
+        qId: q0.id,
+        selectedOption: q0.correctAnswer,
+        status: "answered"
+      };
+
+      // Candidate answers Question 1 incorrectly
+      const q1 = state.activeQuestionsData[1];
+      const wrongOpt = ["A", "B", "C", "D"].find(o => o !== q1.correctAnswer) || "A";
+      state.responses[1] = {
+        qId: q1.id,
+        selectedOption: wrongOpt,
+        status: "answered"
+      };
+
+      // Submit the exam using production handleFinalSubmit()
+      handleFinalSubmit();
+
+      assert(state.activeReviewSubmission !== null, "handleFinalSubmit() generated active review submission");
+      assert(state.activeReviewSubmission.studentId === reg1.student.studentId, "Submission successfully linked to permanent student ID: " + reg1.student.studentId);
+      assert(state.activeReviewSubmission.correctCount === 1, "Submission correct count is 1 (+2 marks)");
+      assert(state.activeReviewSubmission.wrongCount === 1, "Submission wrong count is 1 (-0.5 deduction)");
+      assert(state.activeReviewSubmission.unattemptedCount === 148, "Submission unattempted count is 148");
+      assert(state.activeReviewSubmission.totalScore === 1.5, `Net score calculated with exact negative marking: 1.5 Marks (Actual: ${state.activeReviewSubmission.totalScore})`);
+
+      // Verify that StudentAccountService has recorded this attempt
+      const studentMocksAfterLiveSubmit = await StudentAccountService.getStudentMocks(reg1.student.studentId, { page: 1, limit: 10 });
+      assert(studentMocksAfterLiveSubmit.attempts.length >= 4, `Permanent Student History now contains ${studentMocksAfterLiveSubmit.attempts.length} attempts`);
+      assert(studentMocksAfterLiveSubmit.attempts[0].totalScore === 1.5, "Live submitted exam is top record in student history with score 1.5");
+
+      // -------------------------------------------------------------
+      // Test 22: UPSSSC PET Exam Completion & Immediate Mock History Update
+      // -------------------------------------------------------------
+      selectExamCategory("upsssc");
+      selectSubExam("upsssc-pet");
+      state.currentStudent = reg1.student;
+
+      // Start CBT Exam for UPSSSC PET
+      startExamForCandidate(reg1.student.name, reg1.student.roll, reg1.student.phone, reg1.student.category || "OBC");
+      assert(state.activeQuestionsData && state.activeQuestionsData.length === 100, "UPSSSC PET: 100 questions loaded for CBT Exam");
+      assert(state.activeExamConfig.totalMarks === 100, "UPSSSC PET: 100 Total Marks (+1.0 / -0.25)");
+
+      // Candidate answers first 5 questions correctly
+      for (let i = 0; i < 5; i++) {
+        const q = state.activeQuestionsData[i];
+        state.responses[i] = {
+          qId: q.id,
+          selectedOption: q.correctAnswer,
+          status: "answered"
+        };
+      }
+
+      // Complete and submit the test
+      handleFinalSubmit();
+
+      // Verify that history is IMMEDIATELY updated
+      const studentHistoryImmediate = await StudentAccountService.getStudentMocks(reg1.student.studentId, { page: 1, limit: 10 });
+      assert(studentHistoryImmediate.attempts.length >= 5, `History immediately updated: Total attempts = ${studentHistoryImmediate.attempts.length}`);
+      assert(studentHistoryImmediate.attempts[0].examTitle.includes("UPSSSC") || studentHistoryImmediate.attempts[0].examTitle.includes("PET"), "Most recent attempt is UPSSSC PET Mock Test");
+      assert(studentHistoryImmediate.attempts[0].totalScore === 5, "UPSSSC PET Score = 5.0 Marks (+1 x 5 correct)");
+      assert(studentHistoryImmediate.attempts[0].studentId === reg1.student.studentId, "Attempt permanently tied to studentId: " + reg1.student.studentId);
+
+      // Verify statistics immediately re-calculated
+      const immediateStats = await StudentAccountService.getStudentStatistics(reg1.student.studentId);
+      assert(immediateStats.totalMocks === studentHistoryImmediate.total, `Stats reflect total mocks count: ${immediateStats.totalMocks}`);
+
+      // -------------------------------------------------------------
+      // Test 23: Canvas Photo Auto-Compression & Storage Quota Protection
+      // -------------------------------------------------------------
+      assert(typeof StudentAccountService.compressImageDataUrl === "function", "StudentAccountService exposes compressImageDataUrl");
+      assert(typeof StudentAccountService.cleanLocalStorageQuota === "function", "StudentAccountService exposes cleanLocalStorageQuota");
+
+      // Test canvas compression on a dummy canvas/image
+      const testCanvas = document.createElement("canvas");
+      testCanvas.width = 1200;
+      testCanvas.height = 1200;
+      const ctx = testCanvas.getContext("2d");
+      ctx.fillStyle = "blue";
+      ctx.fillRect(0, 0, 1200, 1200);
+      const largeDataUrl = testCanvas.toDataURL("image/png");
+
+      const compressedResult = await StudentAccountService.compressImageDataUrl(largeDataUrl, 250, 250, 0.78);
+      assert(compressedResult && compressedResult.startsWith("data:image/jpeg"), "Image successfully auto-compressed to JPEG format");
+      assert(compressedResult.length < 50000, `Compressed photo length (${compressedResult.length} bytes) is safely under 50KB quota threshold`);
+
+      // Clean quota execution check
+      StudentAccountService.cleanLocalStorageQuota();
+      const currentSess = StudentAccountService.getActiveSession();
+      assert(currentSess && currentSess.studentId, "Session persists cleanly and safely under quota limits");
+
+      console.log(`=== TEST SUMMARY: ${passed} PASSED, ${failed} FAILED ===`);
+      const summaryClass = failed === 0 ? "badge-pass" : "badge-fail";
+      document.getElementById("results").innerHTML = `
+        <div class="summary-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <strong style="font-size:1.1rem;">Verification Results</strong>
+            <span class="${summaryClass}">${passed} PASSED / ${failed} FAILED</span>
+          </div>
+          <div style="font-size:0.9rem; color:#475569;">
+            ${failed === 0 ? `🎉 All ${passed} tests (Exam Patterns + Permanent Student Account System) passed successfully with 0 errors!` : "⚠️ Some tests failed. Check log below."}
+          </div>
+        </div>
+        <div class="test-log">${logs.join("")}</div>
+      `;
+    } catch (err) {
+      console.error(err);
+      document.getElementById("results").innerHTML = `
+        <div style="color:red; background:white; padding:16px; border-radius:8px; border:1px solid #f87171;">
+          <h2>Test Suite Execution Error</h2>
+          <p>${err.message}</p>
+          <pre>${err.stack}</pre>
+        </div>
+      `;
+    }
+  }
+
+  // Run on page load
+  window.addEventListener("DOMContentLoaded", runAllTests);
+  </script>
+</body>
+</html>

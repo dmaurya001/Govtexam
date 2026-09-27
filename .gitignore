@@ -1,5 +1,21 @@
+# Temporary & Cache files
+tmp_chrome/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment variables & secrets (API keys)
 .env
+server/.env
+*.env.local
+
+# Node dependencies
 node_modules/
-npm-debug.log*
+server/node_modules/
+
+# Server dynamic runtime data
+server/data/papers/
+server/data/*.json
 data/papers/
 data/*.json
