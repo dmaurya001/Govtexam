@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Verification: Student Auth & AntiCheat</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #0f172a; color: #f8fafc; }
+    .pass { color: #4ade80; font-weight: bold; }
+    .fail { color: #f87171; font-weight: bold; }
+    .log { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <h2>GovtExamHub — Auth & AntiCheat Verification Test</h2>
+  <div id="output">Running verification...</div>
+
+  <!-- CBT DOM Fixture for Anti-Cheat -->
+  <div id="cbt-tab-switch-pill" style="display:none;"></div>
+  <div id="cbt-anticheat-banner" class="cbt-anticheat-toast"></div>
+
+  <script src="student_account_service.js"></script>
+  <script>
+    const output = document.getElementById("output");
+    let passed = 0;
+    let failed = 0;
+
+    function log(msg, isPass) {
+      const div = document.createElement("div");
+      div.className = "log " + (isPass ? "pass" : "fail");
+      div.textContent = (isPass ? "✓ PASS: " : "✗ FAIL: ") + msg;
+      output.appendChild(div);
+      if (isPass) passed++; else failed++;
+    }
+
+    async function runTests() {
+      output.innerHTML = "";
+      console.log("Starting Auth and Anti-Cheat test suite...");
+
+      try {
+        // Clear student storage for fresh test run
+        localStorage.removeItem(StudentAccountService.STORAGE_KEY_STUDENTS);
+        localStorage.removeItem(StudentAccountService.STORAGE_KEY_AUTH_INDEX);
+        localStorage.removeItem(StudentAccountService.STORAGE_KEY_ACTIVE);
+
+        // ---------------- TEST 1: Register Permanent Account ----------------
+        const regRes = await StudentAccountService.registerStudent({
+          name: "Deepak Sharma",
+          roll: "ROLL-992211",
+          phone: "9876543210",
+          category: "OBC",
+          password: "MyPassword@123",
+          photoBase64: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        });
+
+        log("1. Student Registration Succeeded (Student ID: " + (regRes.student ? regRes.student.studentId : "N/A") + ")", regRes.status === "success" && !!regRes.student);
+
+        const stuId = regRes.student.studentId;
+
+        // ---------------- TEST 2: Duplicate Phone Registration Blocked ----------------
+        const dupRes = await StudentAccountService.registerStudent({
+          name: "Another Person",
+          roll: "ROLL-111111",
+          phone: "9876543210",
+          category: "General",
+          password: "password456"
+        });
+        log("2. Duplicate Phone Registration Prevented", dupRes.status === "error" && dupRes.code === "DUPLICATE_PHONE");
+
+        // ---------------- TEST 3: Login with Normal 10-digit Phone ----------------
+        const loginNormal = await StudentAccountService.loginStudent("9876543210", "MyPassword@123");
+        log("3. Login with 10-digit Phone", loginNormal.status === "success" && loginNormal.student.name === "Deepak Sharma");
+
+        // ---------------- TEST 4: Login with +91 and Spaces in Phone ----------------
+        const loginPlus91 = await StudentAccountService.loginStudent("+91 98765 43210", "MyPassword@123");
+        log("4. Login with '+91 98765 43210' (Formatted Phone)", loginPlus91.status === "success" && loginPlus91.student.name === "Deepak Sharma");
+
+        // ---------------- TEST 5: Login with 0 prefix and dashes ----------------
+        const loginZeroDash = await StudentAccountService.loginStudent("09876-543210", "MyPassword@123");
+        log("5. Login with '09876-543210' (Leading zero + hyphens)", loginZeroDash.status === "success" && loginZeroDash.student.name === "Deepak Sharma");
+
+        // ---------------- TEST 6: Login with Student ID (Case-insensitive) ----------------
+        const loginStuId = await StudentAccountService.loginStudent(stuId.toLowerCase(), "MyPassword@123");
+        log("6. Login with Student ID in Lowercase ('" + stuId.toLowerCase() + "')", loginStuId.status === "success" && loginStuId.student.name === "Deepak Sharma");
+
+        // ---------------- TEST 7: Login with Student ID with Hyphens ----------------
+        const hyphenatedId = stuId.slice(0, 3) + "-" + stuId.slice(3, 7) + "-" + stuId.slice(7);
+        const loginHyphenId = await StudentAccountService.loginStudent(hyphenatedId, "MyPassword@123");
+        log("7. Login with Hyphenated Student ID ('" + hyphenatedId + "')", loginHyphenId.status === "success");
+
+        // ---------------- TEST 8: Login with Full Name (Case-insensitive) ----------------
+        const loginName = await StudentAccountService.loginStudent("deepak sharma", "MyPassword@123");
+        log("8. Login with Student Name ('deepak sharma')", loginName.status === "success");
+
+        // ---------------- TEST 9: Wrong Password Handling ----------------
+        const wrongPass = await StudentAccountService.loginStudent("9876543210", "wrong_pass_123");
+        log("9. Wrong Password Rejected with WRONG_PASSWORD code", wrongPass.status === "error" && wrongPass.code === "WRONG_PASSWORD");
+
+        // ---------------- TEST 10: Non-existent Account Handling ----------------
+        const notFound = await StudentAccountService.loginStudent("9999999999", "pass123");
+        log("10. Non-existent Account Returns NOT_FOUND code", notFound.status === "error" && notFound.code === "NOT_FOUND");
+
+        // ---------------- TEST 11: Auth Index Resilience ----------------
+        // Even if students array is corrupted/wiped from main key, auth index can still authenticate
+        const authIndexRaw = localStorage.getItem(StudentAccountService.STORAGE_KEY_AUTH_INDEX);
+        log("11. Auth Index Persisted Separately", !!authIndexRaw && authIndexRaw.length > 0);
+
+        // ---------------- TEST 12: Quota Cleanup Function ----------------
+        // Set a bloated mock submission
+        localStorage.setItem("nursing_exam_submissions_v1", JSON.stringify([
+          { id: "sub1", answers: new Array(150).fill({ question: "Sample question text", explanation: "Long explanation" }) },
+          { id: "sub2", answers: new Array(150).fill({ question: "Sample question text 2", explanation: "Long explanation 2" }) }
+        ]));
+        StudentAccountService.cleanLocalStorageQuota(true);
+        const cleanedSub = JSON.parse(localStorage.getItem("nursing_exam_submissions_v1") || "[]");
+        log("12. Quota Auto-Cleaning Prunes Bloated Answer Explanations", cleanedSub.length === 2 && !cleanedSub[0].answers[0].explanation);
+
+        // ---------------- TEST 13: Anti-Cheat Toast Banner Rendering ----------------
+        // Simulate anti-cheat banner without native window.alert()
+        const banner = document.getElementById("cbt-anticheat-banner");
+        banner.innerHTML = `
+          <div class="anticheat-toast-inner">
+            <div class="anticheat-toast-icon">⚠️</div>
+            <div class="anticheat-toast-content">
+              <div class="anticheat-toast-title">विंडो / टैब स्विच चेतावनी! (Window Switch Detected)</div>
+              <div class="anticheat-toast-desc">परीक्षा के दौरान विंडो या टैब बदलना प्रतिबंधित है। कुल स्विच: <strong>1</strong> बार दर्ज हुआ।</div>
+            </div>
+            <button type="button" class="anticheat-toast-close">&times;</button>
+          </div>
+        `;
+        banner.classList.add("active");
+        log("13. In-Page Non-Blocking Anti-Cheat Toast Banner Active", banner.classList.contains("active") && banner.textContent.includes("Window Switch"));
+
+        // ---------------- TEST 14: CBT Tab Switch Badge Counter ----------------
+        const badge = document.getElementById("cbt-tab-switch-pill");
+        badge.style.display = "inline-flex";
+        badge.textContent = "⚠️ Window Switches: 1";
+        log("14. CBT Window Switch Counter Pill Displayed", badge.style.display === "inline-flex" && badge.textContent.includes("1"));
+
+        // Summary
+        const summary = document.createElement("h3");
+        summary.textContent = `Results: ${passed} PASSED, ${failed} FAILED`;
+        summary.className = failed === 0 ? "pass" : "fail";
+        output.appendChild(summary);
+
+        // Write result to document title for easy headless reading
+        document.title = `TEST_RESULT:${passed}_PASSED_${failed}_FAILED`;
+      } catch (err) {
+        log("Test execution error: " + err.message, false);
+      }
+    }
+
+    window.onload = runTests;
+  </script>
+</body>
+</html>

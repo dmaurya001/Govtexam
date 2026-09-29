@@ -19,16 +19,36 @@
 
   // Storage Keys
   const STORAGE_KEY_STUDENTS = "govtexamhub_students_v1";
+  const STORAGE_KEY_AUTH_INDEX = "govtexamhub_student_auth_index_v1";
   const STORAGE_KEY_SESSION = "govtexamhub_student_session_v1";
   const STORAGE_KEY_MOCKS = "govtexamhub_student_mocks_v1";
   const STORAGE_KEY_SEQ = "govtexamhub_student_seq_v1";
+  const STORAGE_KEY_MAIN_SUBMISSIONS = "nursing_exam_submissions_v1";
   const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5 MB strictly
   const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
-  // Backend API URL (falls back to local if server running on 3001)
-  const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "http://localhost:3001/api/student"
-    : "/api/student";
+  // Dynamic Backend API URL (checks window.GOVTEXAMHUB_API_URL, localhost:3001, or fallback)
+  function getApiBase() {
+    if (typeof window !== "undefined" && window.GOVTEXAMHUB_API_URL) {
+      return String(window.GOVTEXAMHUB_API_URL).replace(/\/+$/, "") + "/student";
+    }
+    if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+      return "http://localhost:3001/api/student";
+    }
+    return "/api/student";
+  }
+  const API_BASE = getApiBase();
+
+  function getCloudWebhookUrl() {
+    try {
+      const saved = localStorage.getItem("nursing_exam_cloud_config_v1");
+      if (saved && saved.trim() && saved.includes("script.google.com")) return saved.trim();
+    } catch (e) {}
+    if (typeof state !== "undefined" && state && state.DEFAULT_CLOUD_WEBHOOK_URL) {
+      return state.DEFAULT_CLOUD_WEBHOOK_URL;
+    }
+    return "https://script.google.com/macros/s/AKfycbxQt0Pwhd1P-G1CNNHVCTODceLYBpjfhI3iPxXmNLKQgl2wPjHuLYlU4vBZOupQkPsO/exec";
+  }
 
   /**
    * Cryptographic Password Hash using Web Crypto API (SHA-256 with salt)
@@ -138,15 +158,57 @@
   }
 
   /**
-   * Retrieve all registered student accounts from local storage
+   * Retrieve all registered student accounts with dual-tier fallback
+   * Merges full student list and indestructible auth credentials index
    */
   function getAllStudents() {
+    let mainList = [];
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY_STUDENTS) || "[]");
+      const raw = localStorage.getItem(STORAGE_KEY_STUDENTS);
+      if (raw) {
+        mainList = JSON.parse(raw);
+        if (!Array.isArray(mainList)) mainList = [];
+      }
     } catch (e) {
-      console.error("[StudentStore] Error loading students:", e);
-      return [];
+      console.error("[StudentStore] Error loading students from main store:", e);
+      mainList = [];
     }
+
+    let authIndex = [];
+    try {
+      const rawIndex = localStorage.getItem(STORAGE_KEY_AUTH_INDEX);
+      if (rawIndex) {
+        authIndex = JSON.parse(rawIndex);
+        if (!Array.isArray(authIndex)) authIndex = [];
+      }
+    } catch (e) {}
+
+    // Merge any student records present in authIndex but missing or truncated in mainList
+    if (Array.isArray(authIndex) && authIndex.length > 0) {
+      let mergedAny = false;
+      authIndex.forEach(authStu => {
+        if (!authStu || !authStu.studentId) return;
+        const exists = mainList.find(s => s.studentId === authStu.studentId);
+        if (!exists) {
+          mainList.push(authStu);
+          mergedAny = true;
+        } else {
+          // Recover password hash or salt if missing from main store
+          if (!exists.passwordHash && authStu.passwordHash) {
+            exists.passwordHash = authStu.passwordHash;
+            exists.passwordSalt = authStu.passwordSalt;
+            mergedAny = true;
+          }
+        }
+      });
+      if (mergedAny && mainList.length > 0) {
+        try {
+          localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(mainList));
+        } catch (mErr) {}
+      }
+    }
+
+    return mainList;
   }
 
   /**
@@ -229,16 +291,16 @@
    * Storage Quota Protector & Self-Healing Cleaner
    * Ensures localStorage stays safely under 5 MB limit.
    */
-  function cleanLocalStorageQuota() {
+  function cleanLocalStorageQuota(force = false) {
     try {
-      // 1. Inspect students store and purge any legacy oversized Base64 (> 70 KB)
+      // 1. Inspect students store and purge any legacy oversized Base64 (> 60 KB)
       const rawStudents = localStorage.getItem(STORAGE_KEY_STUDENTS);
       if (rawStudents) {
         let modified = false;
         const students = JSON.parse(rawStudents);
         if (Array.isArray(students)) {
           students.forEach(s => {
-            if (s.photoUrl && typeof s.photoUrl === "string" && s.photoUrl.length > 70000) {
+            if (s.photoUrl && typeof s.photoUrl === "string" && (s.photoUrl.length > 60000 || (force && s.photoUrl.length > 10000))) {
               s.photoUrl = "";
               modified = true;
             }
@@ -255,7 +317,7 @@
       if (rawSession) {
         try {
           const session = JSON.parse(rawSession);
-          if (session && session.photoUrl && session.photoUrl.length > 40000) {
+          if (session && session.photoUrl && session.photoUrl.length > 30000) {
             session.photoUrl = "";
             localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(session));
             console.log("[StorageRecovery] Cleaned bloated photo from active session.");
@@ -265,16 +327,66 @@
 
       // 3. Prune excessive mock history if mocks map is enormous
       const rawMocks = localStorage.getItem(STORAGE_KEY_MOCKS);
-      if (rawMocks && rawMocks.length > 1500000) {
+      if (rawMocks && (rawMocks.length > 1000000 || force)) {
         try {
           const allMocksMap = JSON.parse(rawMocks);
           Object.keys(allMocksMap).forEach(k => {
-            if (Array.isArray(allMocksMap[k]) && allMocksMap[k].length > 30) {
-              allMocksMap[k] = allMocksMap[k].slice(0, 30);
+            if (Array.isArray(allMocksMap[k]) && allMocksMap[k].length > 15) {
+              allMocksMap[k] = allMocksMap[k].slice(0, 15);
             }
           });
           localStorage.setItem(STORAGE_KEY_MOCKS, JSON.stringify(allMocksMap));
         } catch (e) {}
+      }
+
+      // 4. CRITICAL: Prune main exam submissions store to prevent student registration blocks
+      const rawSubmissions = localStorage.getItem(STORAGE_KEY_MAIN_SUBMISSIONS);
+      if (rawSubmissions && (rawSubmissions.length > 500000 || force)) {
+        try {
+          const submissions = JSON.parse(rawSubmissions);
+          if (Array.isArray(submissions) && submissions.length > 0) {
+            let modified = false;
+            const slimSubmissions = submissions.slice(0, 25).map((sub, idx) => {
+              if (sub.detailedAnswers && Array.isArray(sub.detailedAnswers)) {
+                const hasBloat = sub.detailedAnswers.some(ans => ans && (ans.explanation || (ans.question && ans.question.length > 80)));
+                if (hasBloat && (idx > 2 || force)) {
+                  modified = true;
+                  return {
+                    ...sub,
+                    detailedAnswers: sub.detailedAnswers.map(ans => ({
+                      id: ans.id,
+                      studentOption: ans.studentOption,
+                      correctOption: ans.correctOption,
+                      isCorrect: ans.isCorrect,
+                      status: ans.status
+                    }))
+                  };
+                }
+              }
+              if (sub.answers && Array.isArray(sub.answers)) {
+                const hasBloat = sub.answers.some(ans => ans && (ans.explanation || (ans.question && ans.question.length > 80)));
+                if (hasBloat && (idx > 2 || force)) {
+                  modified = true;
+                  return {
+                    ...sub,
+                    answers: sub.answers.map(ans => ({
+                      id: ans.id,
+                      studentOption: ans.studentOption,
+                      correctOption: ans.correctOption,
+                      isCorrect: ans.isCorrect,
+                      status: ans.status
+                    }))
+                  };
+                }
+              }
+              return sub;
+            });
+            if (modified) {
+              localStorage.setItem(STORAGE_KEY_MAIN_SUBMISSIONS, JSON.stringify(slimSubmissions));
+              console.log("[StorageRecovery] Pruned oversized submissions to liberate quota for student accounts.");
+            }
+          }
+        } catch (subErr) {}
       }
     } catch (err) {
       console.warn("[cleanLocalStorageQuota] Warning during storage cleanup:", err);
@@ -282,40 +394,125 @@
   }
 
   /**
-   * Save student list
+   * Save student list with indestructible dual-tier storage
+   * Credentials (ID, phone, name, password hash) are saved to authIndex FIRST so they NEVER get lost.
    */
   function saveAllStudents(list) {
+    if (!Array.isArray(list)) return;
+
+    // TIER 1: Always save lightweight credentials auth index FIRST
+    // No photos, minimal JSON (~100 bytes per student) -> 100% immune to QuotaExceededError
+    try {
+      const authIndex = list.map(s => ({
+        studentId: s.studentId,
+        name: s.name,
+        phone: s.phone,
+        roll: s.roll,
+        category: s.category || s.batch,
+        batch: s.batch,
+        email: s.email || "",
+        passwordHash: s.passwordHash,
+        passwordSalt: s.passwordSalt,
+        status: s.status || "active",
+        createdAt: s.createdAt,
+        lastLoginAt: s.lastLoginAt
+      }));
+      localStorage.setItem(STORAGE_KEY_AUTH_INDEX, JSON.stringify(authIndex));
+    } catch (authErr) {
+      console.warn("[StudentStore] Auth index emergency recovery:", authErr);
+      cleanLocalStorageQuota();
+      try {
+        const minimalAuth = list.map(s => ({
+          studentId: s.studentId,
+          phone: s.phone,
+          passwordHash: s.passwordHash,
+          passwordSalt: s.passwordSalt,
+          status: s.status || "active"
+        }));
+        localStorage.setItem(STORAGE_KEY_AUTH_INDEX, JSON.stringify(minimalAuth));
+      } catch (e2) {}
+    }
+
+    // TIER 2: Save full student records (with profile photos, safely compressed)
     try {
       localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(list));
     } catch (e) {
-      console.warn("[StudentStore] Error saving students, recovering storage:", e);
+      console.warn("[StudentStore] LocalStorage quota reached, recovering:", e);
       cleanLocalStorageQuota();
       try {
         const pruned = list.map(s => {
-          if (s.photoUrl && s.photoUrl.length > 60000) {
+          if (s.photoUrl && s.photoUrl.length > 25000) {
             return { ...s, photoUrl: "" };
           }
           return s;
         });
         localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(pruned));
       } catch (err2) {
-        console.error("[StudentStore] Fatal save failure:", err2);
+        console.error("[StudentStore] Saved without photos to preserve credentials:", err2);
+        try {
+          const stripped = list.map(s => ({ ...s, photoUrl: "" }));
+          localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(stripped));
+        } catch (err3) {
+          console.error("[StudentStore] Fatal save on full list, but authIndex is preserved:", err3);
+        }
       }
     }
   }
 
   /**
-   * Find student by ID or Mobile
+   * Find student by ID, Mobile, Roll, Name, or Email
+   * Handles all user entry formats: +91, 0 prefix, spaces, dashes, lowercase/uppercase
    */
   function findStudentByIdentifier(identifier) {
     if (!identifier) return null;
-    const clean = identifier.trim().toLowerCase();
+    const raw = String(identifier).trim();
+    if (!raw) return null;
+    const clean = raw.toLowerCase();
+    const digitsOnly = raw.replace(/\D/g, "");
+    const last10Digits = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+    const normalizedId = clean.replace(/[\s\-_]/g, "");
+
     const students = getAllStudents();
-    return students.find(s => 
-      (s.studentId && s.studentId.toLowerCase() === clean) ||
-      (s.phone && s.phone === clean) ||
-      (s.roll && s.roll.toLowerCase() === clean)
-    ) || null;
+    return students.find(s => {
+      // 1. Phone number match (any format: 8960627330, +918960627330, 08960627330, 89606 27330)
+      if (s.phone) {
+        const sPhoneClean = String(s.phone).replace(/\D/g, "");
+        const sPhone10 = sPhoneClean.slice(-10);
+        if (last10Digits && last10Digits.length === 10 && (sPhoneClean === digitsOnly || sPhone10 === last10Digits)) {
+          return true;
+        }
+        if (s.phone === raw || s.phone === clean) return true;
+      }
+
+      // 2. Student ID match (GMH2026xxxx, gmh-2026-xxxx, GMH 2026xxxx)
+      if (s.studentId) {
+        const sIdClean = s.studentId.toLowerCase();
+        const sIdNorm = sIdClean.replace(/[\s\-_]/g, "");
+        if (sIdClean === clean || sIdNorm === normalizedId) return true;
+        if (digitsOnly && digitsOnly.length >= 4 && sIdNorm.endsWith(digitsOnly)) return true;
+      }
+
+      // 3. Roll Number match
+      if (s.roll) {
+        const sRollClean = String(s.roll).toLowerCase().trim();
+        const sRollNorm = sRollClean.replace(/[\s\-_]/g, "");
+        if (sRollClean === clean || sRollNorm === normalizedId) return true;
+      }
+
+      // 4. Full Name match (case-insensitive)
+      if (s.name) {
+        const sNameClean = String(s.name).toLowerCase().trim();
+        if (sNameClean === clean) return true;
+      }
+
+      // 5. Email match
+      if (s.email) {
+        const sEmailClean = String(s.email).toLowerCase().trim();
+        if (sEmailClean === clean) return true;
+      }
+
+      return false;
+    }) || null;
   }
 
   /**
@@ -402,7 +599,24 @@
         return { status: "error", message: "Passwords do not match. (पासवर्ड और पुष्टि पासवर्ड मेल नहीं खाते)" };
       }
 
-      // 2. Photo validation for NEW students + Auto Compression
+      // 1.5 Sync latest student registry from Google Sheets Cloud before duplicate check
+      if (typeof syncStudentsFromCloud === "function") {
+        try {
+          await syncStudentsFromCloud();
+        } catch (scErr) {}
+      }
+
+      // 2. Duplicate Account Check (Mobile / Student ID / Roll)
+      const existing = findStudentByIdentifier(cleanPhone) || (roll && findStudentByIdentifier(roll));
+      if (existing) {
+        return {
+          status: "error",
+          code: "DUPLICATE_PHONE",
+          message: `An account already exists with Mobile Number ${cleanPhone}. Please login instead. (इस मोबाइल नंबर से खाता पहले से मौजूद है, कृपया लॉगिन करें)`
+        };
+      }
+
+      // 3. Photo validation for NEW students + Auto Compression
       if (!photoDataUrl) {
         return { status: "error", message: "Profile photo is required for registration. (पासपोर्ट साइज फोटो अनिवार्य है)" };
       }
@@ -414,12 +628,6 @@
         } catch (compErr) {
           console.warn("[registerStudent] Photo auto-compression skipped:", compErr);
         }
-      }
-
-      // 3. Duplicate Account Check (Mobile / Student ID / Roll)
-      const existing = findStudentByIdentifier(cleanPhone) || (roll && findStudentByIdentifier(roll));
-      if (existing) {
-        return { status: "error", message: `An account already exists with Mobile Number ${cleanPhone}. Please login instead. (इस मोबाइल नंबर से खाता पहले से मौजूद है, कृपया लॉगिन करें)` };
       }
 
       // 4. Generate Unique Permanent Student ID
@@ -457,8 +665,10 @@
       // 8. Create Authenticated Session
       setStudentSession(newStudent);
 
-      // 9. Background sync to Node server if active
+      // 9. Background sync to Node server & Google Sheets Cloud registry
       syncStudentToServer(newStudent, "register").catch(() => {});
+      syncStudentRegistrationToServer(newStudent, password).catch(() => {});
+      syncStudentToCloud(newStudent).catch(() => {});
 
       const safe = sanitizeStudent(newStudent);
       return {
@@ -473,7 +683,7 @@
 
   /**
    * STUDENT LOGIN
-   * Authenticates with Student ID / Mobile and Password
+   * Authenticates with Student ID / Mobile / Name / Roll / Email and Password
    */
   async function loginStudent(identifier, password) {
     try {
@@ -484,19 +694,66 @@
         return { status: "error", message: "कृपया अपना पासवर्ड दर्ज करें।" };
       }
 
-      const student = findStudentByIdentifier(identifier.trim());
+      const rawId = identifier.trim();
+      let student = findStudentByIdentifier(rawId);
+
+      // 1. If not found locally on this device, sync from Google Sheets Cloud
+      // (Student may have registered from another smartphone or laptop)
+      if (!student && typeof syncStudentsFromCloud === "function") {
+        try {
+          await syncStudentsFromCloud();
+          student = findStudentByIdentifier(rawId);
+        } catch (cErr) {}
+      }
+
+      // 2. If still not found, attempt server login if backend is available
       if (!student) {
-        return { status: "error", message: "Invalid Student ID or password. (गलत छात्र आईडी या पासवर्ड)" };
+        const serverStudent = await attemptServerLogin(rawId, password);
+        if (serverStudent) {
+          student = serverStudent;
+        }
+      }
+
+      if (!student) {
+        return { 
+          status: "error", 
+          code: "NOT_FOUND",
+          message: "इस Student ID या मोबाइल नंबर से कोई छात्र खाता नहीं मिला। कृपया जांच लें या नया पंजीकरण (Registration) करें।" 
+        };
       }
 
       if (student.status === "suspended") {
-        return { status: "error", message: "Your account is currently suspended. Please contact the administrator. (आपका खाता निलंबित है। कृपया शिक्षक/एडमिन से संपर्क करें।)" };
+        return { 
+          status: "error", 
+          code: "SUSPENDED",
+          message: "Your account is suspended. आपका खाता निलंबित है। कृपया शिक्षक/एडमिन (8960627330) से संपर्क करें।" 
+        };
       }
 
       // Hash input password with user's salt and compare
       const computedHash = await hashPassword(password, student.passwordSalt);
-      if (computedHash !== student.passwordHash) {
-        return { status: "error", message: "Invalid Student ID or password. (गलत छात्र आईडी या पासवर्ड)" };
+      let passMatched = (computedHash === student.passwordHash);
+
+      // Also check fallback plaintext if account was migrated or newly created
+      if (!passMatched && student.password && student.password === password) {
+        passMatched = true;
+        // Upgrade legacy plaintext to secure salt hash
+        student.passwordHash = computedHash;
+        delete student.password;
+        const students = getAllStudents();
+        const idx = students.findIndex(s => s.studentId === student.studentId);
+        if (idx >= 0) {
+          students[idx] = student;
+          saveAllStudents(students);
+        }
+      }
+
+      if (!passMatched) {
+        return { 
+          status: "error", 
+          code: "WRONG_PASSWORD",
+          message: "पासवर्ड गलत है! कृपया सही पासवर्ड दर्ज करें या नीचे 'Forgot Password' लिंक से नया पासवर्ड बनाएं।" 
+        };
       }
 
       // Update last login
@@ -725,6 +982,12 @@
    */
   function recordStudentMockAttempt(submissionRecord) {
     if (!submissionRecord) return;
+    if (submissionRecord.type === "student_registration" || submissionRecord.action === "register_student") {
+      return;
+    }
+    if (!submissionRecord.examTitle && !submissionRecord.candidate && submissionRecord.totalScore === undefined) {
+      return;
+    }
     const current = getCurrentStudent();
     const studentId = submissionRecord.studentId || (current ? current.studentId : null);
     if (!studentId) return;
@@ -968,6 +1231,203 @@
   }
 
   /**
+   * Background registration sync to server if active
+   */
+  async function syncStudentRegistrationToServer(studentData, rawPassword) {
+    try {
+      const api = getApiBase();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      await fetch(`${api}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: studentData.name,
+          phone: studentData.phone,
+          roll: studentData.roll,
+          batch: studentData.batch || studentData.category,
+          password: rawPassword,
+          confirmPassword: rawPassword,
+          photoUrl: (studentData.photoUrl && studentData.photoUrl.length < 50000) ? studentData.photoUrl : ""
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+    } catch (e) {
+      // Offline resilient
+    }
+  }
+
+  /**
+   * Sync student's permanent account to Google Sheets Cloud Registry
+   * Ensures the student can log in from ANY device (Phone, Tablet, Laptop) anywhere in the world!
+   */
+  async function syncStudentToCloud(student) {
+    if (!student || !student.studentId) return;
+    const url = getCloudWebhookUrl();
+    if (!url) return;
+
+    try {
+      const payload = {
+        type: "student_registration",
+        action: "register_student",
+        student: {
+          studentId: student.studentId,
+          name: student.name,
+          phone: student.phone,
+          roll: student.roll,
+          category: student.category || student.batch,
+          batch: student.batch,
+          passwordHash: student.passwordHash,
+          passwordSalt: student.passwordSalt,
+          status: student.status || "active",
+          createdAt: student.createdAt
+        }
+      };
+
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        keepalive: true,
+        cache: "no-cache",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      console.log(`[CloudSync] Student ${student.studentId} registered in cloud sheet.`);
+    } catch (err) {
+      console.warn("[CloudSync] Notice syncing student to cloud:", err.message);
+    }
+  }
+
+  /**
+   * Fetch and synchronize all registered students from Google Sheets Cloud
+   * Merges students registered on other devices into this local device
+   */
+  async function syncStudentsFromCloud() {
+    const url = getCloudWebhookUrl();
+    if (!url) return getAllStudents();
+
+    try {
+      const fetchUrl = url + (url.includes("?") ? "&" : "?") + "action=getStudents&t=" + Date.now();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 9000);
+
+      const res = await fetch(fetchUrl, { method: "GET", signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const text = await res.text();
+        let data = null;
+        try {
+          data = JSON.parse(text);
+        } catch (pe) {
+          return getAllStudents();
+        }
+
+        if (data && data.status === "success" && Array.isArray(data.students)) {
+          const localStudents = getAllStudents();
+          let mergedCount = 0;
+
+          let maxSeq = parseInt(localStorage.getItem(STORAGE_KEY_SEQ) || "0", 10);
+
+          data.students.forEach(cloudStu => {
+            if (!cloudStu || !cloudStu.studentId) return;
+
+            // Track max student ID sequence across cloud
+            if (cloudStu.studentId.startsWith("GMH2026")) {
+              const num = parseInt(cloudStu.studentId.replace("GMH2026", ""), 10);
+              if (!isNaN(num) && num > maxSeq) maxSeq = num;
+            }
+
+            const existingIdx = localStudents.findIndex(s => 
+              s.studentId === cloudStu.studentId || 
+              (cloudStu.phone && s.phone && s.phone === cloudStu.phone)
+            );
+
+            if (existingIdx < 0) {
+              localStudents.push(cloudStu);
+              mergedCount++;
+            } else {
+              if (cloudStu.passwordHash && localStudents[existingIdx].passwordHash !== cloudStu.passwordHash) {
+                localStudents[existingIdx].passwordHash = cloudStu.passwordHash;
+                localStudents[existingIdx].passwordSalt = cloudStu.passwordSalt;
+                mergedCount++;
+              }
+              if (cloudStu.name && !localStudents[existingIdx].name) {
+                localStudents[existingIdx].name = cloudStu.name;
+                mergedCount++;
+              }
+              if (cloudStu.category && (!localStudents[existingIdx].category || localStudents[existingIdx].category === "General")) {
+                localStudents[existingIdx].category = cloudStu.category;
+                localStudents[existingIdx].batch = cloudStu.category;
+                mergedCount++;
+              }
+              if (cloudStu.status && localStudents[existingIdx].status !== cloudStu.status) {
+                localStudents[existingIdx].status = cloudStu.status;
+                mergedCount++;
+              }
+            }
+          });
+
+          if (maxSeq > parseInt(localStorage.getItem(STORAGE_KEY_SEQ) || "0", 10)) {
+            localStorage.setItem(STORAGE_KEY_SEQ, String(maxSeq));
+          }
+
+          if (mergedCount > 0) {
+            saveAllStudents(localStudents);
+            console.log(`[CloudSync] Merged ${mergedCount} student accounts from Google Sheets.`);
+          }
+          return localStudents;
+        }
+      }
+    } catch (err) {
+      console.warn("[CloudSync] Notice fetching students from cloud:", err.message);
+    }
+    return getAllStudents();
+  }
+
+  /**
+   * Remote server login fallback when student not found in local storage
+   */
+  async function attemptServerLogin(identifier, password) {
+    try {
+      const api = getApiBase();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const resp = await fetch(`${api}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier, password }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.status === "success" && data.student) {
+          const salt = Math.random().toString(36).substring(2, 12);
+          const hash = await hashPassword(password, salt);
+          const localRecord = {
+            ...data.student,
+            passwordHash: hash,
+            passwordSalt: salt,
+            lastLoginAt: new Date().toISOString()
+          };
+          const list = getAllStudents();
+          const existingIdx = list.findIndex(s => s.studentId === localRecord.studentId);
+          if (existingIdx >= 0) list[existingIdx] = localRecord;
+          else list.push(localRecord);
+          saveAllStudents(list);
+          return localRecord;
+        }
+      }
+    } catch (e) {
+      // Quiet offline fallback
+    }
+    return null;
+  }
+
+  /**
    * Paginated & filtered mock attempts for student
    */
   async function getStudentMocks(studentId, options = {}) {
@@ -1052,6 +1512,11 @@
 
   // Export public service API
   window.StudentAccountService = {
+    STORAGE_KEY_STUDENTS,
+    STORAGE_KEY_AUTH_INDEX,
+    STORAGE_KEY_SESSION,
+    STORAGE_KEY_MOCKS,
+    STORAGE_KEY_MAIN_SUBMISSIONS,
     getAllStudents,
     findStudentByIdentifier,
     validateImageFile,
@@ -1076,6 +1541,8 @@
     toggleStudentStatus,
     adminResetPassword,
     migratePastSubmissionsForStudent,
+    syncStudentToCloud,
+    syncStudentsFromCloud,
     sanitizeStudent,
     generateNextStudentId,
     hashPassword,

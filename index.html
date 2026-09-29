@@ -667,6 +667,11 @@
             <button type="submit" class="btn-start-exam" id="btn-start-exam">
               <span id="btn-start-exam-text">🚀 Register & Create Permanent Account / खाता बनाएं</span>
             </button>
+
+            <div class="auth-switch-prompt-row">
+              <span class="auth-prompt-text">पहले से पंजीकृत हैं? / Already registered?</span>
+              <button type="button" class="btn-link-login-now" id="link-switch-to-login">🔑 छात्र लॉगिन करें / Login Here &rarr;</button>
+            </div>
           </form>
 
           <!-- Form 2: Returning Student Login Form -->
@@ -697,6 +702,11 @@
             <button type="submit" class="btn-start-exam" id="btn-submit-login">
               <span>🔑 Login to Student Dashboard / लॉगिन करें &rarr;</span>
             </button>
+
+            <div class="auth-switch-prompt-row">
+              <span class="auth-prompt-text">नया छात्र खाता बनाना है? / New Student?</span>
+              <button type="button" class="btn-link-login-now" id="link-switch-to-register">📝 नया पंजीकरण करें / Register Now &rarr;</button>
+            </div>
           </form>
 
         </div>
@@ -781,6 +791,9 @@
   <section id="screen-cbt" class="screen">
     <div class="cbt-container">
 
+      <!-- In-Page Anti-Cheat Notification Toast Banner -->
+      <div id="cbt-anticheat-banner" class="cbt-anticheat-toast"></div>
+
       <!-- Top Navigation & Timer Bar -->
       <header class="cbt-topbar">
         <div class="cbt-brand">
@@ -809,6 +822,9 @@
         </div>
 
         <div class="cbt-controls-right">
+          <!-- Window/Tab Switch Warning Pill -->
+          <span id="cbt-tab-switch-pill" class="cbt-tab-switch-pill" style="display: none;" title="Anti-Cheat: Window switch counter">⚠️ Switches: 0</span>
+
           <!-- Language Mode Switcher -->
           <select id="lang-switcher" class="lang-select" title="Change Question Display Language">
             <option value="both">🌐 Bilingual (English + Hindi)</option>

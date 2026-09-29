@@ -1,7 +1,9 @@
 /**
  * =========================================================================
- * GOOGLE SHEETS LIVE 2-WAY SYNC SCRIPT — B.Sc. NURSING ENTRANCE CBT PORTAL
+ * GOOGLE SHEETS LIVE 2-WAY SYNC SCRIPT — GOVTEXAMHUB CBT PORTAL
  * =========================================================================
+ * Captures all Student Registrations & Exam Submissions from ANY device
+ * (Phones, Laptops, Tablets, PCs anywhere in the world) into your Google Sheet!
  * 
  * Target Google Sheet URL:
  * https://docs.google.com/spreadsheets/d/1IjVmBmR-q2c7ZP9UORJAn3tqDIjzl2S_hzB0oW6LXhk/edit
@@ -67,7 +69,32 @@ function getMainSheet(ss) {
 }
 
 /**
- * 1. HTTP GET Request — सभी डिवाइस (फोन, लैपटॉप) से एडमिन डैशबोर्ड में डेटा लोड करने के लिए
+ * छात्र रजिस्ट्री शीट "Students_Registry" प्राप्त करने या बनाने का हेल्पर फंक्शन
+ */
+function getStudentsSheet(ss) {
+  var sheet = ss.getSheetByName("Students_Registry");
+  if (!sheet) {
+    sheet = ss.insertSheet("Students_Registry");
+    var headers = [
+      "Timestamp", "Student_ID", "Full_Name", "Mobile_Phone",
+      "Category", "Roll_Number", "Password_Hash", "Password_Salt",
+      "Status", "Raw_JSON"
+    ];
+    sheet.appendRow(headers);
+    try {
+      var headerRange = sheet.getRange(1, 1, 1, headers.length);
+      headerRange.setFontWeight("bold");
+      headerRange.setBackground("#0f172a");
+      headerRange.setFontColor("#ffffff");
+      headerRange.setHorizontalAlignment("center");
+      sheet.setFrozenRows(1);
+    } catch(e) {}
+  }
+  return sheet;
+}
+
+/**
+ * 1. HTTP GET Request — सभी डिवाइस से डेटा लोड करने के लिए (Submissions & Students)
  */
 function doGet(e) {
   try {
@@ -79,21 +106,59 @@ function doGet(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "getSubmissions";
+    var rawAction = (e && e.parameter && e.parameter.action) ? String(e.parameter.action).trim() : "getSubmissions";
+    var action = rawAction.toLowerCase();
 
-    // हेल्थ चेक पिंग
+    // 1. हेल्थ चेक पिंग
     if (action === "ping") {
       return ContentService.createTextOutput(JSON.stringify({
         status: "active",
-        message: "Google Apps Script 2-Way Sync Webhook is LIVE & READY!",
+        message: "GovtExamHub Cloud Sync Webhook is LIVE & READY across all devices!",
         spreadsheetId: TARGET_SPREADSHEET_ID,
         timestamp: new Date().toISOString()
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // 2. पंजीकृत छात्रों की सूची प्राप्त करें (Sync Registered Students across all devices)
+    if (action === "getstudents" || action === "get_students" || action === "students") {
+      var stuSheet = getStudentsSheet(ss);
+      var students = [];
+      if (stuSheet && stuSheet.getLastRow() > 1) {
+        var rows = stuSheet.getRange(2, 1, stuSheet.getLastRow() - 1, 10).getValues();
+        for (var k = 0; k < rows.length; k++) {
+          var r = rows[k];
+          if (!r[1]) continue; // studentId required
+          
+          var parsedExtra = {};
+          if (r[9] && typeof r[9] === "string") {
+            try { parsedExtra = JSON.parse(r[9]); } catch(pe) {}
+          }
+
+          students.push({
+            studentId: String(r[1]),
+            name: String(r[2] || ""),
+            phone: String(r[3] || ""),
+            category: String(r[4] || "General"),
+            batch: String(r[4] || "General"),
+            roll: String(r[5] || r[1]),
+            passwordHash: String(r[6] || (parsedExtra && parsedExtra.passwordHash) || ""),
+            passwordSalt: String(r[7] || (parsedExtra && parsedExtra.passwordSalt) || ""),
+            status: String(r[8] || "active"),
+            createdAt: r[0] ? r[0].toString() : new Date().toISOString()
+          });
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        count: students.length,
+        students: students
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 3. सभी सबमिशन लोड करें (Sync Exam Submissions across all devices)
     var submissions = [];
 
-    // 1. सबसे पहले बैकग्राउंड 'Submissions_DB' शीट से पूरा JSON डेटा लोड करें
+    // सबसे पहले बैकग्राउंड 'Submissions_DB' शीट से पूरा JSON डेटा लोड करें
     var dbSheet = ss.getSheetByName("Submissions_DB");
     if (dbSheet && dbSheet.getLastRow() > 1) {
       var lastRow = dbSheet.getLastRow();
@@ -102,7 +167,14 @@ function doGet(e) {
         var rawJson = dbRows[i][4];
         if (rawJson && typeof rawJson === "string") {
           try {
-            submissions.push(JSON.parse(rawJson));
+            var item = JSON.parse(rawJson);
+            // Ignore accidental registration records or non-submissions
+            if (item && (item.type === "student_registration" || item.action === "register_student")) {
+              continue;
+            }
+            if (item && (item.examTitle || item.candidate || item.totalScore !== undefined)) {
+              submissions.push(item);
+            }
           } catch(err) {
             // ignore malformed JSON
           }
@@ -110,7 +182,7 @@ function doGet(e) {
       }
     }
 
-    // 2. अगर Submissions_DB खाली हो, तो मुख्य 'Student Results' शीट से डेटा निकालें
+    // अगर Submissions_DB खाली हो, तो मुख्य 'Student Results' शीट से डेटा निकालें
     if (submissions.length === 0) {
       var mainSheet = getMainSheet(ss);
       if (mainSheet && mainSheet.getLastRow() > 1) {
@@ -118,30 +190,27 @@ function doGet(e) {
         var numCols = Math.min(mainSheet.getLastColumn(), 20);
         var mainRows = mainSheet.getRange(2, 1, lastMainRow - 1, numCols).getValues();
         for (var j = 0; j < mainRows.length; j++) {
-          var r = mainRows[j];
-          if (!r[1] && !r[2]) continue; // खाली रो छोड़ें
+          var row = mainRows[j];
+          if (!row[1] && !row[2]) continue; // खाली रो छोड़ें
           submissions.push({
             id: "SHEET-SUB-" + (j + 1),
-            submittedAt: r[0] ? r[0].toString() : new Date().toISOString(),
+            submittedAt: row[0] ? row[0].toString() : new Date().toISOString(),
+            examTitle: String(row[1] || "Govt Exam"),
             candidate: {
-              roll: String(r[1] || "N/A"),
-              name: String(r[2] || "Student"),
-              phone: String(r[3] || "N/A"),
-              batch: String(r[4] || "General")
+              roll: String(row[3] || "N/A"),
+              name: String(row[4] || "Student"),
+              studentId: String(row[5] || ""),
+              phone: String(row[6] || "N/A"),
+              batch: String(row[2] || "General")
             },
-            totalScore: Number(r[5]) || 0,
-            percentage: String(r[6] || "0").replace("%", ""),
-            resultStatus: String(r[7] || "PASS"),
-            correctCount: Number(r[8]) || 0,
-            wrongCount: Number(r[9]) || 0,
-            unattemptedCount: Number(r[10]) || 0,
-            sectionScores: {
-              physics: { score: Number(r[11]) || 0 },
-              chemistry: { score: Number(r[12]) || 0 },
-              biology: { score: Number(r[13]) || 0 },
-              english: { score: Number(r[14]) || 0 }
-            },
-            tabSwitches: Number(r[15]) || 0,
+            totalScore: Number(row[7]) || 0,
+            maxMarks: Number(row[8]) || 100,
+            percentage: String(row[9] || "0").replace("%", ""),
+            resultStatus: String(row[10] || "PASS"),
+            correctCount: Number(row[11]) || 0,
+            wrongCount: Number(row[12]) || 0,
+            unattemptedCount: Number(row[13]) || 0,
+            tabSwitches: Number(row[14]) || 0,
             timeTakenSeconds: 0,
             detailedAnswers: []
           });
@@ -164,7 +233,7 @@ function doGet(e) {
 }
 
 /**
- * 2. HTTP POST Request — जब भी छात्र अपने फोन पर एग्जाम सबमिट करेगा
+ * 2. HTTP POST Request — छात्र रजिस्ट्रेशन या एग्जाम सबमिशन दर्ज करने के लिए
  */
 function doPost(e) {
   try {
@@ -203,62 +272,140 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 1. मुख्य शीट ("Student Results") प्राप्त करें
-    var mainSheet = getMainSheet(ss);
+    var formattedDate = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
 
-    // अगर पहली बार डेटा आ रहा है और शीट खाली है, तो सुंदर हेडर रो (Header Row) बनाएं
+    // =========================================================================
+    // CASE A: NEW STUDENT REGISTRATION (छात्र का स्थायी खाता क्लाउड में सुरक्षित)
+    // =========================================================================
+    if (data.type === "student_registration" || data.action === "register_student") {
+      var stu = data.student || data;
+      var stuSheet = getStudentsSheet(ss);
+      
+      var cleanPhone = (stu.phone || "").toString().replace(/\D/g, "");
+      var stuId = String(stu.studentId || "");
+      var stuName = String(stu.name || "");
+      var stuCategory = String(stu.category || stu.batch || "General");
+      var stuRoll = String(stu.roll || stuId);
+      var stuHash = String(stu.passwordHash || "");
+      var stuSalt = String(stu.passwordSalt || "");
+      var stuStatus = String(stu.status || "active");
+      
+      // Prevent storing bloated images in spreadsheet
+      var cleanSafeJson = { ...stu };
+      delete cleanSafeJson.photoUrl;
+      delete cleanSafeJson.photoBase64;
+      var rawJsonStr = JSON.stringify(cleanSafeJson);
+
+      // Check if student already exists in registry (update if found)
+      var foundRow = -1;
+      if (stuSheet.getLastRow() > 1) {
+        var existingData = stuSheet.getRange(2, 2, stuSheet.getLastRow() - 1, 3).getValues();
+        for (var idx = 0; idx < existingData.length; idx++) {
+          var rowStuId = String(existingData[idx][0]);
+          var rowPhone = String(existingData[idx][2]).replace(/\D/g, "");
+          if ((stuId && rowStuId === stuId) || (cleanPhone && rowPhone === cleanPhone)) {
+            foundRow = idx + 2;
+            break;
+          }
+        }
+      }
+
+      var studentRow = [
+        formattedDate,
+        stuId,
+        stuName,
+        cleanPhone,
+        stuCategory,
+        stuRoll,
+        stuHash,
+        stuSalt,
+        stuStatus,
+        rawJsonStr
+      ];
+
+      if (foundRow > 0) {
+        if (!stuHash || !stuSalt) {
+          try {
+            var oldCredentials = stuSheet.getRange(foundRow, 7, 1, 2).getValues()[0];
+            if (!stuHash && oldCredentials[0]) stuHash = String(oldCredentials[0]);
+            if (!stuSalt && oldCredentials[1]) stuSalt = String(oldCredentials[1]);
+            studentRow[6] = stuHash;
+            studentRow[7] = stuSalt;
+          } catch(he) {}
+        }
+        stuSheet.getRange(foundRow, 1, 1, studentRow.length).setValues([studentRow]);
+      } else {
+        stuSheet.appendRow(studentRow);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Permanent student account synchronized to cloud registry",
+        studentId: stuId
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // =========================================================================
+    // CASE B: CBT EXAM SUBMISSION (किसी भी परीक्षा का परिणाम क्लाउड में सुरक्षित)
+    // =========================================================================
+    if (data.type === "student_registration" || data.action === "register_student") {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ignored",
+        message: "Student registration record bypassed CASE A"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var mainSheet = getMainSheet(ss);
     if (mainSheet.getLastRow() === 0) {
       createHeaderRow(mainSheet);
     }
 
-    // छात्र का समय व रिजल्ट स्टेटस
-    var formattedDate = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
     var totalScore = Number(data.totalScore) || 0;
-    var resultStatus = totalScore >= 50 ? "PASS" : "FAIL";
+    var maxMarks = Number(data.maxMarks) || 100;
+    var resultStatus = totalScore >= (maxMarks * 0.4) ? "PASS" : "FAIL";
     var durationMins = data.timeTakenSeconds ? Math.round(data.timeTakenSeconds / 60) + " mins" : "N/A";
+    var examTitle = data.examTitle || (data.candidate && data.candidate.exam) || "Govt CBT Exam";
+    var candName = data.candidate ? data.candidate.name : "Student";
+    var candRoll = data.candidate ? data.candidate.roll : "N/A";
+    var candId = data.studentId || (data.candidate && data.candidate.studentId) || "N/A";
+    var candPhone = data.candidate ? data.candidate.phone : "N/A";
+    var candBatch = data.candidate ? (data.candidate.batch || data.candidate.category) : "General";
 
-    var physScore = (data.sectionScores && data.sectionScores.physics) ? data.sectionScores.physics.score : 0;
-    var chemScore = (data.sectionScores && data.sectionScores.chemistry) ? data.sectionScores.chemistry.score : 0;
-    var bioScore = (data.sectionScores && data.sectionScores.biology) ? data.sectionScores.biology.score : 0;
-    var engScore = (data.sectionScores && data.sectionScores.english) ? data.sectionScores.english.score : 0;
-
-    // मुख्य विवरण (Student Profile + Overall Score)
-    var row = [
+    var resultRow = [
       formattedDate,
-      data.candidate ? data.candidate.roll : "N/A",
-      data.candidate ? data.candidate.name : "N/A",
-      data.candidate ? data.candidate.phone : "N/A",
-      (data.candidate && data.candidate.batch) ? data.candidate.batch : "General",
+      examTitle,
+      candBatch,
+      candRoll,
+      candName,
+      candId,
+      candPhone,
       totalScore,
-      (data.percentage || totalScore) + "%",
+      maxMarks,
+      (data.percentage || ((totalScore / maxMarks) * 100).toFixed(1)) + "%",
       resultStatus,
       data.correctCount !== undefined ? data.correctCount : 0,
       data.wrongCount !== undefined ? data.wrongCount : 0,
       data.unattemptedCount !== undefined ? data.unattemptedCount : 0,
-      physScore,
-      chemScore,
-      bioScore,
-      engScore,
       data.tabSwitches !== undefined ? data.tabSwitches : 0,
       durationMins
     ];
 
-    // प्रश्न 1 से 100 तक के चुने गए विकल्प (Q1 to Q100 with result)
+    // प्रश्न 1 से 100+ तक के चुने गए विकल्प
     if (data.detailedAnswers && data.detailedAnswers.length > 0) {
       data.detailedAnswers.forEach(function(ans) {
         if (!ans || !ans.studentOption) {
-          row.push("— (Skipped)");
+          resultRow.push("— (Skipped)");
         } else if (ans.isCorrect) {
-          row.push(ans.studentOption + " (✓ Correct)");
+          resultRow.push(ans.studentOption + " (✓ Correct)");
         } else {
-          row.push(ans.studentOption + " (✗ Key: " + (ans.correctOption || "N/A") + ")");
+          resultRow.push(ans.studentOption + " (✗ Key: " + (ans.correctOption || "N/A") + ")");
         }
       });
     }
 
-    mainSheet.appendRow(row);
+    mainSheet.appendRow(resultRow);
 
-    // 2. बैकग्राउंड 'Submissions_DB' शीट में पूरा रॉ डेटा सेव करें (ताकि टीचर किसी भी डिवाइस से देख सकें)
+    // 2. बैकग्राउंड 'Submissions_DB' शीट में पूरा रॉ JSON सेव करें (ताकि किसी भी डिवाइस पर पूरा पेपर दिखे)
     var dbSheet = ss.getSheetByName("Submissions_DB");
     if (!dbSheet) {
       dbSheet = ss.insertSheet("Submissions_DB");
@@ -268,17 +415,31 @@ function doPost(e) {
       } catch(e) {}
     }
     
+    // Save lightweight JSON (prune excessive questions explanation if huge)
+    var lightweightData = { ...data };
+    if (lightweightData.detailedAnswers && lightweightData.detailedAnswers.length > 50) {
+      lightweightData.detailedAnswers = lightweightData.detailedAnswers.map(function(ans) {
+        return {
+          id: ans.id,
+          studentOption: ans.studentOption,
+          correctOption: ans.correctOption,
+          isCorrect: ans.isCorrect,
+          status: ans.status
+        };
+      });
+    }
+
     dbSheet.appendRow([
       formattedDate,
-      data.candidate ? data.candidate.name : "Anonymous",
-      data.candidate ? data.candidate.roll : "N/A",
+      candName,
+      candRoll,
       totalScore,
-      JSON.stringify(data)
+      JSON.stringify(lightweightData)
     ]);
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
-      student: data.candidate ? data.candidate.name : "Anonymous",
+      student: candName,
       score: totalScore,
       timestamp: formattedDate
     })).setMimeType(ContentService.MimeType.JSON);
@@ -297,20 +458,19 @@ function doPost(e) {
 function createHeaderRow(sheet) {
   var headers = [
     "Timestamp (IST)",
+    "Exam Title",
+    "Category / Target",
     "Roll Number",
     "Student Name",
+    "Student ID",
     "WhatsApp / Phone",
-    "Category / Target",
-    "Total Marks (/100)",
+    "Total Marks",
+    "Max Marks",
     "Percentage",
     "Result",
     "Correct (✓)",
     "Incorrect (✗)",
     "Skipped (⚪)",
-    "Physics (/25)",
-    "Chemistry (/25)",
-    "Biology (/40)",
-    "English (/10)",
     "Tab Switches (Cheating)",
     "Time Taken"
   ];
@@ -322,14 +482,13 @@ function createHeaderRow(sheet) {
 
   sheet.appendRow(headers);
 
-  // हेडर रो को बोल्ड, नेवी ब्लू बैकग्राउंड, वाइट टेक्स्ट और टॉप रो व प्रथम 3 कॉलम फ्रीज करें
   try {
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setFontWeight("bold");
-    headerRange.setBackground("#1e3a8a");
+    headerRange.setBackground("#0B2D5C");
     headerRange.setFontColor("#ffffff");
     headerRange.setHorizontalAlignment("center");
     sheet.setFrozenRows(1);
-    sheet.setFrozenColumns(3);
+    sheet.setFrozenColumns(4);
   } catch(e) {}
 }

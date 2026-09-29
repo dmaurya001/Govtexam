@@ -30,6 +30,7 @@ var state = {
   examStartTime: null,
   examEndTime: null,
   tabSwitchCount: 0,
+  isTogglingFullscreen: false,
   responses: [],
   activeReviewSubmission: null,
   
@@ -133,6 +134,18 @@ document.addEventListener("DOMContentLoaded", () => {
   initInnovationSupportCard();
   initAdminPasscodeManager();
   checkUrlTestModes();
+
+  // Gentle Background Auto-Sync from Google Sheets Cloud across all devices
+  setTimeout(() => {
+    try {
+      if (window.StudentAccountService && typeof StudentAccountService.syncStudentsFromCloud === "function") {
+        StudentAccountService.syncStudentsFromCloud().catch(() => {});
+      }
+      if (typeof fetchLiveSubmissionsFromCloud === "function") {
+        fetchLiveSubmissionsFromCloud(false).catch(() => {});
+      }
+    } catch (e) {}
+  }, 1200);
 });
 
 /**
@@ -688,6 +701,11 @@ function showScreen(screenName) {
     if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Automatic cleanup of admin polling when switching to other screens
+  if (screenName !== "admin" && typeof stopAdminCloudPolling === "function") {
+    stopAdminCloudPolling();
+  }
+
   // Automatic fresh re-render whenever student dashboard is shown
   if (screenName === "studentDashboard") {
     const student = state.currentStudent || (window.StudentAccountService ? StudentAccountService.getActiveSession() : null);
@@ -999,14 +1017,50 @@ function initEventListeners() {
   });
   document.getElementById("btn-test-cloud-webhook").addEventListener("click", testCloudWebhook);
 
-  // ── Anti-Cheat Tab Switch Detection ──
+  // ── Anti-Cheat Tab / Window Switch Detection ──
+  // Non-blocking, debounced, and immune to false positives (dropdowns, fullscreen toggle, micro-glitches)
+  let hiddenStartTime = 0;
+  let lastTabWarningTime = 0;
+
   document.addEventListener("visibilitychange", () => {
-    if (screens.cbt.classList.contains("active")) {
-      if (document.hidden) {
+    // Only monitor if CBT screen is actively taking exam
+    if (!screens.cbt || !screens.cbt.classList.contains("active")) return;
+
+    // Ignore if user is currently toggling fullscreen (transition grace period)
+    if (state.isTogglingFullscreen) return;
+
+    if (document.hidden) {
+      hiddenStartTime = Date.now();
+    } else {
+      // Document is visible again
+      if (hiddenStartTime > 0) {
+        const awayDurationMs = Date.now() - hiddenStartTime;
+        hiddenStartTime = 0;
+
+        // GRACE THRESHOLD:
+        // If away for less than 1800ms (1.8s), it was an accidental click,
+        // dropdown open/close (language, fonts), fullscreen transition, or OS notification.
+        // DO NOT count as a cheating tab switch!
+        if (awayDurationMs < 1800) {
+          console.log(`[AntiCheat] Ignored brief visibility glitch (${awayDurationMs}ms)`);
+          return;
+        }
+
+        // DEBOUNCE: Do not spam warnings if triggered repeatedly within 6 seconds
+        const now = Date.now();
+        if (now - lastTabWarningTime < 6000) {
+          return;
+        }
+        lastTabWarningTime = now;
+
         state.tabSwitchCount++;
-        console.warn(`Anti-cheat: Tab switched ${state.tabSwitchCount} time(s).`);
-      } else {
-        alert(`⚠️ Warning: Tab switching detected (${state.tabSwitchCount} times)! This is recorded in your submission.`);
+        console.warn(`[AntiCheat] Tab switch verified: ${state.tabSwitchCount} times (Away: ${(awayDurationMs / 1000).toFixed(1)}s)`);
+
+        // Display elegant in-page non-blocking toast banner (NEVER uses blocking window.alert!)
+        showAntiCheatWarningBanner(state.tabSwitchCount);
+
+        // Update live switch counter badge in CBT interface
+        updateCbtTabSwitchBadge(state.tabSwitchCount);
       }
     }
   });
@@ -1457,6 +1511,21 @@ async function handleCandidateRegistration(e) {
 
       if (regResult.status === "error") {
         alert("⚠️ " + regResult.message);
+        // If account already exists, auto-switch to Login tab and pre-fill mobile number!
+        if (regResult.message && (regResult.message.includes("already exists") || regResult.message.includes("पहले से मौजूद"))) {
+          if (typeof switchToLogin === "function") {
+            switchToLogin();
+          } else {
+            const btnLogTab = document.getElementById("btn-auth-mode-login");
+            if (btnLogTab) btnLogTab.click();
+          }
+          const idInput = document.getElementById("login-student-id");
+          if (idInput) {
+            idInput.value = phone;
+          }
+          const passInput = document.getElementById("login-student-password");
+          if (passInput) passInput.focus();
+        }
         return;
       }
 
@@ -2142,9 +2211,14 @@ function setFontSize(size) {
 }
 
 /**
- * Toggle Fullscreen
+ * Toggle Fullscreen (with transition grace period to prevent false anti-cheat triggers)
  */
 function toggleFullscreen() {
+  state.isTogglingFullscreen = true;
+  setTimeout(() => {
+    state.isTogglingFullscreen = false;
+  }, 2500);
+
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
       console.log(`Error attempting to enable fullscreen: ${err.message}`);
@@ -2152,6 +2226,61 @@ function toggleFullscreen() {
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen();
+    }
+  }
+}
+
+/**
+ * In-Page Non-Blocking Anti-Cheat Warning Toast
+ * Replaces native alert() to completely prevent browser focus-stealing loops and repeating alerts!
+ */
+function showAntiCheatWarningBanner(count) {
+  let banner = document.getElementById("cbt-anticheat-banner");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "cbt-anticheat-banner";
+    banner.className = "cbt-anticheat-toast";
+    document.body.appendChild(banner);
+  }
+
+  banner.innerHTML = `
+    <div class="anticheat-toast-inner">
+      <div class="anticheat-toast-icon">⚠️</div>
+      <div class="anticheat-toast-content">
+        <div class="anticheat-toast-title">
+          विंडो / टैब स्विच चेतावनी! (Window Switch Detected)
+        </div>
+        <div class="anticheat-toast-desc">
+          परीक्षा के दौरान विंडो या टैब बदलना प्रतिबंधित है। कुल स्विच: <strong>${count}</strong> बार दर्ज हुआ।
+          <span class="anticheat-toast-sub">यह जानकारी आपकी अंतिम CBT सबमिशन में सुरक्षित रूप से रिकॉर्ड की जा रही है।</span>
+        </div>
+      </div>
+      <button type="button" class="anticheat-toast-close" title="चेतावनी बंद करें" onclick="this.closest('#cbt-anticheat-banner').classList.remove('active')">&times;</button>
+    </div>
+  `;
+
+  // Force reflow and show
+  banner.classList.add("active");
+
+  // Auto dismiss after 5 seconds without blocking exam
+  if (window._antiCheatToastTimer) clearTimeout(window._antiCheatToastTimer);
+  window._antiCheatToastTimer = setTimeout(() => {
+    if (banner) banner.classList.remove("active");
+  }, 5000);
+}
+
+/**
+ * Update Anti-Cheat Tab Switch Pill in CBT Interface
+ */
+function updateCbtTabSwitchBadge(count) {
+  const badge = document.getElementById("cbt-tab-switch-pill");
+  if (badge) {
+    if (count > 0) {
+      badge.style.display = "inline-flex";
+      badge.textContent = `⚠️ Window Switches: ${count}`;
+      badge.title = `Anti-Cheat: Window switched ${count} time(s). Recorded in submission.`;
+    } else {
+      badge.style.display = "none";
     }
   }
 }
@@ -2721,8 +2850,11 @@ function renderAdminDashboard() {
   const dateEl = document.getElementById("stat-security-today-date");
   if (dateEl) dateEl.textContent = new Date().toLocaleDateString("en-IN");
 
-  // Asynchronously fetch live submissions from Google Sheets Cloud
+  // Asynchronously fetch live submissions from Google Sheets Cloud & start auto-polling
   fetchLiveSubmissionsFromCloud();
+  if (typeof startAdminCloudPolling === "function") {
+    startAdminCloudPolling();
+  }
 }
 
 /**
@@ -3118,17 +3250,67 @@ async function fetchLiveSubmissionsFromCloud(isManual = false) {
       }
 
       if (result && result.status === "success" && Array.isArray(result.submissions)) {
-        // Merge cloud records into local storage, avoiding duplicates
+        // Merge cloud records into local storage across all devices, avoiding duplicate insertion
         const localList = JSON.parse(localStorage.getItem(state.STORAGE_KEY_SUBMISSIONS) || "[]");
-        const existingKeys = new Set(localList.map(s => `${(s.candidate && s.candidate.roll) || ""}_${(s.candidate && s.candidate.name) || ""}`));
         
+        function makeSubKey(s) {
+          if (!s) return "";
+          if (s.id) return "id:" + String(s.id).trim();
+          const c = s.candidate || {};
+          const roll = (c.roll || "").trim().toLowerCase();
+          const phone = (c.phone || "").replace(/\D/g, "");
+          const name = (c.name || "").trim().toLowerCase();
+          const time = getSubmissionTimestamp(s);
+          const score = s.totalScore !== undefined ? s.totalScore : "";
+          const exam = (s.examId || s.examTitle || "").trim().toLowerCase();
+          return `comp:${roll}|${phone}|${name}|${exam}|${time}|${score}`;
+        }
+
+        const existingKeys = new Set();
+        localList.forEach(s => {
+          if (s.id) existingKeys.add("id:" + String(s.id).trim());
+          existingKeys.add(makeSubKey(s));
+        });
+
         let addedCount = 0;
         result.submissions.forEach(cloudSub => {
-          const key = `${(cloudSub.candidate && cloudSub.candidate.roll) || ""}_${(cloudSub.candidate && cloudSub.candidate.name) || ""}`;
-          if (!existingKeys.has(key)) {
-            localList.push(cloudSub);
-            existingKeys.add(key);
-            addedCount++;
+          if (!cloudSub) return;
+          // Ignore registration objects that may be present
+          if (cloudSub.type === "student_registration" || cloudSub.action === "register_student") {
+            return;
+          }
+          if (!cloudSub.examTitle && !cloudSub.candidate && cloudSub.totalScore === undefined) {
+            return;
+          }
+
+          // Normalize candidate structure to guarantee no undefined reference errors
+          if (!cloudSub.candidate || typeof cloudSub.candidate !== "object") {
+            cloudSub.candidate = {
+              name: cloudSub.name || cloudSub.studentName || "Student",
+              roll: cloudSub.roll || cloudSub.rollNumber || "N/A",
+              phone: cloudSub.phone || "N/A",
+              batch: cloudSub.batch || cloudSub.category || "General",
+              studentId: cloudSub.studentId || ""
+            };
+          }
+
+          const idKey = cloudSub.id ? "id:" + String(cloudSub.id).trim() : null;
+          const compKey = makeSubKey(cloudSub);
+
+          if ((idKey && existingKeys.has(idKey)) || existingKeys.has(compKey)) {
+            return;
+          }
+
+          localList.push(cloudSub);
+          if (idKey) existingKeys.add(idKey);
+          existingKeys.add(compKey);
+          addedCount++;
+
+          // Also register attempt with StudentAccountService if available
+          if (window.StudentAccountService && typeof StudentAccountService.recordStudentMockAttempt === "function") {
+            try {
+              StudentAccountService.recordStudentMockAttempt(cloudSub);
+            } catch (rErr) {}
           }
         });
 
@@ -3182,6 +3364,32 @@ async function fetchLiveSubmissionsFromCloud(isManual = false) {
     if (refreshBtn) refreshBtn.classList.remove("spinning");
   }
 }
+
+/**
+ * Background auto-polling for admin dashboard (pulls live submissions from all student devices every 25s)
+ */
+let adminCloudPollTimer = null;
+
+function startAdminCloudPolling() {
+  stopAdminCloudPolling();
+  adminCloudPollTimer = setInterval(() => {
+    const adminScreen = document.getElementById("screen-admin");
+    if (adminScreen && adminScreen.classList.contains("active")) {
+      fetchLiveSubmissionsFromCloud(false);
+    } else {
+      stopAdminCloudPolling();
+    }
+  }, 25000);
+}
+
+function stopAdminCloudPolling() {
+  if (adminCloudPollTimer) {
+    clearInterval(adminCloudPollTimer);
+    adminCloudPollTimer = null;
+  }
+}
+window.startAdminCloudPolling = startAdminCloudPolling;
+window.stopAdminCloudPolling = stopAdminCloudPolling;
 
 /**
  * Safe timestamp extractor for any submission record
@@ -3337,12 +3545,18 @@ function renderAdminTable() {
       dateStr = sub.submittedAt;
     }
 
+    const cand = (sub && sub.candidate) || {};
+    const candName = cand.name || sub.name || "Student";
+    const candRoll = cand.roll || sub.roll || "N/A";
+    const candPhone = cand.phone || sub.phone || "N/A";
+    const candBatch = cand.batch || sub.batch || "";
+
     tr.innerHTML = `
       <td style="text-align: center;"><span class="rank-badge ${idx < 3 ? 'top-rank' : ''}">#${idx + 1}</span></td>
       <td>
-        <div style="font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">${sub.candidate.name || "Student"}</div>
+        <div style="font-weight: 700; color: #1e3a8a; font-size: 0.95rem;">${candName}</div>
         <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
-          Roll: <strong style="color: #334155;">${sub.candidate.roll || "N/A"}</strong> ${sub.candidate.batch ? `• ${sub.candidate.batch}` : ""}
+          Roll: <strong style="color: #334155;">${candRoll}</strong> ${candBatch ? `• ${candBatch}` : ""}
         </div>
       </td>
       <td>
@@ -3350,7 +3564,7 @@ function renderAdminTable() {
         ${examInfo.paper ? `<div class="admin-paper-sub-text">${examInfo.paper}</div>` : ""}
       </td>
       <td>
-        <span style="font-weight: 600; color: #0f172a; font-size: 0.85rem;">📞 ${sub.candidate.phone || "N/A"}</span>
+        <span style="font-weight: 600; color: #0f172a; font-size: 0.85rem;">📞 ${candPhone}</span>
       </td>
       <td>
         <span class="score-badge ${badgeClass}">${sub.totalScore} / ${maxMarks}</span>
@@ -3389,8 +3603,8 @@ function renderAdminTable() {
       card.innerHTML = `
         <div class="mobile-card-top">
           <div>
-            <div class="mobile-card-name">#${idx + 1}. ${sub.candidate.name}</div>
-            <div class="mobile-card-meta">Roll: <strong>${sub.candidate.roll}</strong> • 📞 ${sub.candidate.phone}</div>
+            <div class="mobile-card-name">#${idx + 1}. ${candName}</div>
+            <div class="mobile-card-meta">Roll: <strong>${candRoll}</strong> • 📞 ${candPhone}</div>
             <div style="font-size: 0.78rem; color: #1d4ed8; font-weight: 700; margin-top: 3px;">${examInfo.icon} ${examInfo.name} ${examInfo.paper ? `(${examInfo.paper})` : ""}</div>
           </div>
           <span class="score-badge ${badgeClass}">${sub.totalScore} / ${maxMarks}</span>
@@ -3454,13 +3668,14 @@ function exportAllSubmissionsToCSV() {
   const csvRows = [headers.join(",")];
 
   submissions.forEach((sub, rank) => {
+    const cand = (sub && sub.candidate) || {};
     let row = [
       rank + 1,
-      `"${sub.candidate.roll}"`,
-      `"${sub.candidate.name}"`,
+      `"${cand.roll || sub.roll || 'N/A'}"`,
+      `"${cand.name || sub.name || 'Student'}"`,
       `"${sub.examTitle || 'Govt Exam'}"`,
-      `"${sub.candidate.phone}"`,
-      `"${sub.candidate.batch || ''}"`,
+      `"${cand.phone || sub.phone || 'N/A'}"`,
+      `"${cand.batch || sub.batch || ''}"`,
       `"${getSubmissionTimestamp(sub) > 0 ? new Date(getSubmissionTimestamp(sub)).toLocaleString('en-IN') : (sub.submittedAt || 'N/A')}"`,
       sub.totalScore,
       `"${sub.percentage}%"`,
@@ -3508,6 +3723,10 @@ function handleClearAllRecords() {
  * Cloud Webhook Sync (Google Sheets Live Integration)
  */
 function loadCloudConfig() {
+  const saved = localStorage.getItem(state.STORAGE_KEY_CONFIG);
+  if (!saved || !saved.trim() || !saved.includes("script.google.com")) {
+    localStorage.setItem(state.STORAGE_KEY_CONFIG, state.DEFAULT_CLOUD_WEBHOOK_URL);
+  }
   const url = localStorage.getItem(state.STORAGE_KEY_CONFIG) || state.DEFAULT_CLOUD_WEBHOOK_URL;
   if (url) {
     console.log("Connected Google Sheet Webhook:", url);
@@ -3515,22 +3734,31 @@ function loadCloudConfig() {
 }
 
 /**
- * Dispatch student test submission to Google Sheet Webhook
+ * Dispatch student test submission to Google Sheet Webhook across ANY device
  */
 async function dispatchCloudWebhook(record) {
   const url = localStorage.getItem(state.STORAGE_KEY_CONFIG) || state.DEFAULT_CLOUD_WEBHOOK_URL;
   if (!url) return;
 
   try {
-    // Send as text/plain to avoid CORS preflight OPTIONS rejection in Google Apps Script
+    const payload = {
+      type: "exam_submission",
+      action: "submit_exam",
+      submission: record,
+      ...record
+    };
+
+    // Send as text/plain with keepalive: true to prevent CORS preflight OPTIONS rejection
+    // and guarantee the submission completes even if student closes mobile browser immediately
     await fetch(url, {
       method: "POST",
       mode: "no-cors",
+      keepalive: true,
       cache: "no-cache",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(record)
+      body: JSON.stringify(payload)
     });
-    console.log("Submission successfully dispatched to Google Sheets Webhook.");
+    console.log("Submission successfully dispatched to Google Sheets Webhook with keepalive.");
   } catch (err) {
     console.warn("Failed to dispatch to Google Sheets Webhook:", err);
   }
@@ -3560,18 +3788,24 @@ async function syncAllSubmissionsToGoogleSheets() {
   let sent = 0;
   for (const record of submissions) {
     try {
+      const payload = {
+        type: "exam_submission",
+        action: "submit_exam",
+        submission: record,
+        ...record
+      };
       await fetch(url, {
         method: "POST",
         mode: "no-cors",
         cache: "no-cache",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(record)
+        body: JSON.stringify(payload)
       });
       sent++;
       // Brief pause to prevent Google Apps Script rate limiting
       await new Promise(r => setTimeout(r, 600));
     } catch (e) {
-      console.warn("Sync error for record:", record.candidate.name, e);
+      console.warn("Sync error for record:", (record.candidate && record.candidate.name) || "Student", e);
     }
   }
 
@@ -3596,6 +3830,8 @@ async function testCloudWebhook() {
   try {
     alert("Google Sheet Webhook पर टेस्ट छात्र का डेटा भेजा जा रहा है...");
     const sampleRecord = createMockSubmission("Test Student (Verification)", "BSC-TEST-001", "9876543210", 94);
+    sampleRecord.type = "exam_submission";
+    sampleRecord.action = "submit_exam";
     
     await fetch(url, {
       method: "POST",
@@ -4280,9 +4516,14 @@ async function renderAdminStudentsPanel() {
   const filterStatus = document.getElementById("admin-student-filter-status");
   const statusVal = filterStatus ? filterStatus.value : "";
 
-  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:24px; color:#64748b;">Loading registered student accounts...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:24px; color:#64748b;">Loading registered student accounts from all devices...</td></tr>';
 
   if (!window.StudentAccountService) return;
+  if (typeof StudentAccountService.syncStudentsFromCloud === "function") {
+    try {
+      await StudentAccountService.syncStudentsFromCloud();
+    } catch (scErr) {}
+  }
   const students = await StudentAccountService.getAllStudents();
 
   const totalStudents = students.length;
@@ -4426,8 +4667,17 @@ function initStudentAccountIntegration() {
     if (idInput) idInput.focus();
   }
 
+  window.switchToRegister = switchToRegister;
+  window.switchToLogin = switchToLogin;
+
   if (btnAuthReg) btnAuthReg.addEventListener("click", switchToRegister);
   if (btnAuthLog) btnAuthLog.addEventListener("click", switchToLogin);
+
+  const linkToLogin = document.getElementById("link-switch-to-login");
+  if (linkToLogin) linkToLogin.addEventListener("click", (e) => { e.preventDefault(); switchToLogin(); });
+
+  const linkToReg = document.getElementById("link-switch-to-register");
+  if (linkToReg) linkToReg.addEventListener("click", (e) => { e.preventDefault(); switchToRegister(); });
 
   // 2. Photo Upload Preview & Validation (Strict 5 MB + decodability)
   const regPhotoInput = document.getElementById("reg-student-photo");
@@ -4509,6 +4759,19 @@ function initStudentAccountIntegration() {
       const res = await StudentAccountService.loginStudent(identifier, password);
       if (res.status === "error") {
         alert("⚠️ " + res.message);
+        if (res.code === "NOT_FOUND") {
+          const wantReg = confirm("इस नंबर से कोई खाता नहीं मिला। क्या आप अभी नया छात्र खाता (One-Time Registration) बनाना चाहते हैं?");
+          if (wantReg) {
+            switchToRegister();
+            const cleanDigits = identifier.replace(/\D/g, "");
+            const regPhone = document.getElementById("student-phone");
+            if (regPhone && cleanDigits.length >= 10) {
+              regPhone.value = cleanDigits.slice(-10);
+            }
+            const regName = document.getElementById("student-name");
+            if (regName) regName.focus();
+          }
+        }
         return;
       }
 
